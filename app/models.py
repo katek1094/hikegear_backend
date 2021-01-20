@@ -1,18 +1,11 @@
 from django.contrib.auth.base_user import BaseUserManager
-from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.password_validation import validate_password
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.password_validation import validate_password
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.authtoken.models import Token
-
-
-class Profile(models.Model):
-    user = models.OneToOneField('MyUser', related_name='profile', on_delete=models.CASCADE, primary_key=True)
-
-    def __str__(self):
-        return self.user.__str__()
 
 
 class MyUserManager(BaseUserManager):
@@ -51,8 +44,26 @@ class MyUser(AbstractUser):
         return self.email
 
 
+class Profile(models.Model):
+    user = models.OneToOneField(MyUser, related_name='profile', on_delete=models.CASCADE, primary_key=True)
+
+    def __str__(self):
+        return self.user.__str__()
+
+
 @receiver(post_save, sender=MyUser)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
         Profile.objects.create(user=instance)
+
+
+class Backpack(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='backpacks')
+    name = models.CharField(max_length=60, default='')
+    description = models.TextField(max_length=10000, default='')
+    list = models.JSONField(default=list)
+
+    def __str__(self):
+        return self.name
