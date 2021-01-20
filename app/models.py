@@ -2,6 +2,9 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext_lazy as _
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.password_validation import validate_password
 from rest_framework.authtoken.models import Token
 
 
@@ -18,10 +21,9 @@ class MyUserManager(BaseUserManager):
             raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
+        validate_password(password)
         user.set_password(password)
         user.save()
-        Profile.objects.create(user=user)
-        Token.objects.create(user=user)
         return user
 
     def create_superuser(self, email, **extra_fields):
@@ -34,6 +36,9 @@ class MyUserManager(BaseUserManager):
             raise ValueError(_('Superuser must have is_superuser=True.'))
         return self.create_user(email, **extra_fields)
 
+    def create(self, email, password):
+        raise Exception('do not use this method with MyUser model!')
+
 
 class MyUser(AbstractUser):
     username = None
@@ -44,3 +49,10 @@ class MyUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+@receiver(post_save, sender=MyUser)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
+        Profile.objects.create(user=instance)
