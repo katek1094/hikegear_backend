@@ -15,14 +15,14 @@ from django.core.exceptions import ValidationError
 
 from .serializers import MyTokenSerializer, UserSerializer
 from .models import MyUser
+from.permissions import IsAuthenticatedOrPostOnly
 
 
-class UserViewSet(GenericViewSet, CreateModelMixin, DestroyModelMixin):
-    # permission_classes = [IsAuthenticatedOrPostOnly, UserDataPermission]
-    # maybe overwrite get_permissions method?
+class UserViewSet(GenericViewSet, CreateModelMixin):
+    permission_classes = [IsAuthenticatedOrPostOnly]
     serializer_class = UserSerializer
     queryset = MyUser.objects.all()
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ['post', 'patch']
 
     @action(detail=False, methods=['patch'])
     def change_password(self, request):
@@ -41,30 +41,6 @@ class UserViewSet(GenericViewSet, CreateModelMixin, DestroyModelMixin):
             return Response()
         else:
             return Response({'info': 'provided wrong password!'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #
-    # @action(detail=True, methods=['patch'])
-    # def change_email(self, request, pk=None):
-    #     pass
-    #
-    # @action(detail=True, methods=['patch'])
-    # def recover_password(self, request, pk=None):
-    #     # TODO: sending email, lot to do
-    #     pass
-
-
-
-
-"""
-delete user - generic
-create user - generic
-update password - action
-update email - action
-recover password - action
-"""
-
-
-
 
 
 class MyObtainAuthToken(ObtainAuthToken):

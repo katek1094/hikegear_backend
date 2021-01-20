@@ -8,6 +8,6 @@ router.register(r'users', UserViewSet)
 
 
 urlpatterns = [
-
+    path('obtain_token', MyObtainAuthToken.as_view(), name='obtain_token'),
 ]
 urlpatterns += router.urls
