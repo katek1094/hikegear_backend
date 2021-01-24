@@ -51,8 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class MyTokenSerializer(serializers.Serializer):
     email = serializers.CharField(label='email', write_only=True)
-    password = serializers.CharField(label='password', style={'input_type': 'password'},
-                                     trim_whitespace=False, write_only=True)
+    password = serializers.CharField(label='password', style={'input_type': 'password'}, write_only=True)
     token = serializers.CharField(label="Token", read_only=True)
 
     def validate(self, attrs):
@@ -66,3 +65,9 @@ class MyTokenSerializer(serializers.Serializer):
             raise serializers.ValidationError('Must include "email" and "password".', code='authorization')
         attrs['user'] = user
         return attrs
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass

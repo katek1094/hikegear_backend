@@ -3,8 +3,6 @@ from app.models import MyUser, Profile, Backpack
 from .drf_tester import DRFTesterCase
 
 
-# python manage.py test
-
 class BackPackViewSetTestCase(DRFTesterCase):
     url = '/api/backpacks/'
     name = 'backpack name'

@@ -1,9 +1,9 @@
-import io
+# import io
 
-from PIL import Image as Img
+# from PIL import Image as Img
 from rest_framework.test import APIClient
-from rest_framework.authtoken.models import Token
-from django.core.files.base import File
+# from rest_framework.authtoken.models import Token
+# from django.core.files.base import File
 from django.test import TestCase
 
 from app.models import MyUser
