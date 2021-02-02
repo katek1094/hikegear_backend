@@ -3,6 +3,20 @@ from app.models import MyUser, Profile, Backpack
 from .drf_tester import DRFTesterCase
 
 
+class InitialViewTestCase(DRFTesterCase):
+    url = '/api/initial'
+
+    def test_unauthorized_get_method(self):
+        response = self.client.get(self.url)
+        self.status_check(response, 401)
+
+    def test_authorized_valid_get_request(self):
+        self.login_client(self.user1)
+        response = self.client.get(self.url)
+        self.status_check(response, 200)
+        self.assertEqual(response.json()['id'], self.user1.id)
+
+
 class BackPackViewSetTestCase(DRFTesterCase):
     url = '/api/backpacks/'
     name = 'backpack name'

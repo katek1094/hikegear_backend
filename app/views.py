@@ -8,11 +8,20 @@ from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from .models import MyUser, Backpack
 from .permissions import IsAuthenticatedOrPostOnly, IsOwnerPermission
 from .serializers import MyTokenSerializer, UserSerializer, BackpackSerializer, BackpackReadSerializer
+
+
+class InitialView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        return Response({'id': request.user.id})
 
 
 class BackpackViewSet(GenericViewSet, DestroyModelMixin):
