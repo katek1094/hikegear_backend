@@ -1,4 +1,6 @@
-/secret_constants.py
 /venv/
 __pychache__
 .idea/
+.env
+db.sqlite3
+*.pyc
