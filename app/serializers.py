@@ -17,7 +17,7 @@ class BackpackReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Backpack
-        fields = ['id', 'created', 'profile', 'name', 'description', 'list']
+        fields = ['id', 'created', 'updated', 'profile', 'name', 'description', 'list']
         read_only_fields = ['__all__']
 
 
@@ -29,17 +29,14 @@ class BackpackSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Backpack
-        fields = ['id', 'created', 'profile', 'name', 'description', 'list']
-        read_only_fields = ['id', 'created']
+        fields = ['profile', 'name', 'description', 'list']
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = ['email', 'password', 'id']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         try:

@@ -21,7 +21,9 @@ class InitialView(APIView):
 
     @staticmethod
     def get(request):
-        return Response({'id': request.user.id})
+        backpacks = Backpack.objects.filter(profile=request.user.profile)
+        serializer = BackpackReadSerializer(backpacks, many=True)
+        return Response({'id': request.user.id, 'backpacks': serializer.data})
 
 
 class BackpackViewSet(GenericViewSet, DestroyModelMixin):

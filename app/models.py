@@ -60,6 +60,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 class Backpack(models.Model):
     created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='backpacks')
     name = models.CharField(max_length=60, default='')
     description = models.TextField(max_length=10000, default='')

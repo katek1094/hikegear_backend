@@ -5,6 +5,7 @@ from .drf_tester import DRFTesterCase
 
 class InitialViewTestCase(DRFTesterCase):
     url = '/api/initial'
+    response_fields = ['id', 'backpacks']
 
     def test_unauthorized_get_method(self):
         response = self.client.get(self.url)
@@ -15,6 +16,8 @@ class InitialViewTestCase(DRFTesterCase):
         response = self.client.get(self.url)
         self.status_check(response, 200)
         self.assertEqual(response.json()['id'], self.user1.id)
+        self.check_response_fields(response.json())
+        # TODO: check backpacks
 
 
 class BackPackViewSetTestCase(DRFTesterCase):
@@ -23,7 +26,7 @@ class BackPackViewSetTestCase(DRFTesterCase):
     description = 'backpack description'
     list = {'type': 'category'}
     data = {'name': name, 'description': description, 'list': list}
-    response_fields = ['created', 'profile', 'description', 'name', 'list', 'id']
+    response_fields = ['created', 'updated', 'profile', 'description', 'name', 'list', 'id']
 
     def test_unauthorized_valid_get_request(self):
         backpack = Backpack.objects.create(profile=self.user1.profile)
