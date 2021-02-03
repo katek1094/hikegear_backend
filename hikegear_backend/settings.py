@@ -33,12 +33,11 @@ DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "False") == "True"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 CORS_ORIGIN_WHITELIST = [
-    'http://127.0.0.1:8000',
-    'http://127.0.0.1:8080',
     'http://localhost:8081',
     'http://localhost:8080',
-    'http://192.168.0.106:8080'
+    'https://infallible-yonath-339e6b.netlify.app'
 ]
+
 CORS_ALLOW_CREDENTIALS = True
 # TODO: check if corsheaders stuff is necessary
 
