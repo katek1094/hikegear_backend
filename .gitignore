@@ -1,7 +1,7 @@
 /venv/
 __pychache__
 .idea/
-.env
 db.sqlite3
 *.pyc
 /app/migrations/
+/.env

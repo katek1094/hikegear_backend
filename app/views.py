@@ -21,7 +21,7 @@ class InitialView(APIView):
 
     @staticmethod
     def get(request):
-        backpacks = Backpack.objects.filter(profile=request.user.profile)
+        backpacks = Backpack.objects.filter(profile=request.user.profile).order_by('-updated')
         serializer = BackpackReadSerializer(backpacks, many=True)
         return Response({'id': request.user.id, 'backpacks': serializer.data})
 
