@@ -20,9 +20,9 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# load env variables in development
-# project_folder = os.path.expanduser(BASE_DIR)
-# load_dotenv(os.path.join(project_folder, '.env'))
+# # load env variables in development
+project_folder = os.path.expanduser(BASE_DIR)
+load_dotenv(os.path.join(project_folder, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
