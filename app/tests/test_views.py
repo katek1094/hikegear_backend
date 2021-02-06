@@ -5,7 +5,7 @@ from .drf_tester import DRFTesterCase
 
 class InitialViewTestCase(DRFTesterCase):
     url = '/api/initial'
-    response_fields = ['id', 'backpacks']
+    response_fields = ['backpacks']
 
     def test_unauthorized_get_method(self):
         response = self.client.get(self.url)
@@ -15,7 +15,6 @@ class InitialViewTestCase(DRFTesterCase):
         self.login_client(self.user1)
         response = self.client.get(self.url)
         self.status_check(response, 200)
-        self.assertEqual(response.json()['id'], self.user1.id)
         self.check_response_fields(response.json())
         # TODO: check backpacks
 

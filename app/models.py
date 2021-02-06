@@ -63,7 +63,7 @@ class Backpack(models.Model):
     updated = models.DateTimeField(auto_now=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='backpacks')
     name = models.CharField(max_length=60, default='')
-    description = models.TextField(max_length=10000, default='')
+    description = models.TextField(max_length=10000, default='', blank=True)
     list = models.JSONField(default=list)
 
     def __str__(self):
