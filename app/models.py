@@ -62,7 +62,7 @@ class Backpack(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='backpacks')
-    name = models.CharField(max_length=60, default='')
+    name = models.CharField(max_length=60, default='', blank=True)
     description = models.TextField(max_length=10000, default='', blank=True)
     list = models.JSONField(default=list)
 

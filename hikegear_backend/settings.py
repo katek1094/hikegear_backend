@@ -40,7 +40,8 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split("
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:8081',
     'http://localhost:8080',
-    'https://hikegear.netlify.app'
+    'https://hikegear.netlify.app',
+    'http://192.168.0.106:8080'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
