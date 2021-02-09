@@ -41,6 +41,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:8081',
     'http://localhost:8080',
     'https://hikegear.netlify.app',
+    'https://hikegear-develop.netlify.app',
     'http://192.168.0.106:8080'
 ]
 
@@ -58,7 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app',
     'rest_framework',
-    'rest_framework.authtoken',
+    # 'rest_framework.authtoken',
     'corsheaders',
     'django_cleanup.apps.CleanupConfig',
 ]
@@ -156,7 +157,8 @@ AUTH_USER_MODEL = 'app.MyUser'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication'
     ],
 }
 

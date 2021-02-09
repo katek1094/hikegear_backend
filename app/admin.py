@@ -1,7 +1,16 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.admin import ModelAdmin
 
 from .models import MyUser, Profile, Backpack
+from django.contrib.sessions.models import Session
+
+
+class SessionAdmin(ModelAdmin):
+    @staticmethod
+    def _session_data(obj):
+        return obj.get_decoded()
+    list_display = ['session_key', '_session_data', 'expire_date']
 
 
 class MyUserAdmin(UserAdmin):
@@ -22,6 +31,7 @@ class MyUserAdmin(UserAdmin):
     ordering = ('email', )
 
 
+admin.site.register(Session, SessionAdmin)
 admin.site.register(MyUser, MyUserAdmin)
 admin.site.register(Profile)
 admin.site.register(Backpack)
