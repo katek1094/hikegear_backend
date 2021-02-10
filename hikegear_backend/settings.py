@@ -41,7 +41,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:8081',
     'http://localhost:8080',
     'https://hikegear.netlify.app',
-    'https://hikegear-develop.netlify.app',
+    'https://hk-sessions.netlify.app',
     'http://192.168.0.106:8080'
 ]
 
