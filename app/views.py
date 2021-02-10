@@ -106,16 +106,6 @@ class LogoutView(APIView):
         return Response({'info': 'Your are logged out'})
 
 
-from rest_framework.permissions import BasePermission
-
-
-class Lol(BasePermission):
-    def has_permission(self, request, view):
-        print(request)
-        print(request.user)
-        return True
-
-
 class TestView(APIView):
     permission_classes = [IsAuthenticated]
 
