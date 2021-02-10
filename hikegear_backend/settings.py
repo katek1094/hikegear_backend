@@ -43,7 +43,7 @@ CORS_ORIGIN_WHITELIST = [
     'https://hikegear.netlify.app',
     'https://hk-sessions.netlify.app',
     'http://192.168.0.106:8080',
-    'https://hikegear-sessions-6hwtl.ondigitalocean.app'
+    # 'https://hikegear-sessions-6hwtl.ondigitalocean.app'
 ]
 
 CORS_EXPOSE_HEADERS = [
@@ -164,7 +164,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_HTTPONLY = False
-SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = True
 
 # PROD ONLY
 CSRF_COOKIE_SECURE = True
@@ -172,6 +172,6 @@ SESSION_COOKIE_SECURE = True
 
 # CSRF_COOKIE_DOMAIN = 'localhost:8080'
 
-CSRF_TRUSTED_ORIGINS = [
-    'hk-sessions.netlify.app'
-]
+# CSRF_TRUSTED_ORIGINS = [
+#     'hk-sessions.netlify.app'
+# ]
