@@ -81,6 +81,8 @@ class UserViewSet(GenericViewSet, CreateModelMixin):
 class LoginView(APIView):
     @staticmethod
     def post(request):
+        print(request)
+        print(request.data)
         try:
             email = request.data['email']
             password = request.data['password']
