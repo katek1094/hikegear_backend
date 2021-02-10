@@ -42,7 +42,8 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:8080',
     'https://hikegear.netlify.app',
     'https://hk-sessions.netlify.app',
-    'http://192.168.0.106:8080'
+    'http://192.168.0.106:8080',
+    'https://hikegear-sessions-6hwtl.ondigitalocean.app'
 ]
 
 CORS_EXPOSE_HEADERS = [
