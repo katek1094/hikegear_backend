@@ -170,3 +170,7 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
 # CSRF_COOKIE_DOMAIN = 'localhost:8080'
+
+CSRF_TRUSTED_ORIGINS = [
+    'hk-sessions.netlify.app'
+]
