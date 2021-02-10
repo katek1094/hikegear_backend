@@ -180,14 +180,3 @@ class TestUserViewSetCreateAction(DRFTesterCase):
     def test_post_method_password_invalid(self):
         response = self.client.post(self.url, {'email': self.new_user_data['email'], 'password': '1k2j3b6'})
         self.status_check(response, 400)
-
-
-class ObtainTokenTestCase(DRFTesterCase):
-    url = '/api/obtain_token'
-
-    def test_obtaining_token(self):
-        response = self.client.post(self.url, {'email': self.user1data['email'],
-                                               'password': self.user1data['password']})
-        self.status_check(response, 200)
-        self.assertTrue('token' in response.json())
-        self.assertEqual(response.json()['token'], self.user1.auth_token.key)

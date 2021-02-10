@@ -45,6 +45,9 @@ CORS_ORIGIN_WHITELIST = [
     'http://192.168.0.106:8080'
 ]
 
+CORS_EXPOSE_HEADERS = [
+    # 'Content-Type', useless?
+    'X-CSRFToken']
 CORS_ALLOW_CREDENTIALS = True
 # it allows to adding cookies to cross site requests
 
@@ -59,7 +62,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app',
     'rest_framework',
-    'rest_framework.authtoken',
+    # 'rest_framework.authtoken',
     'corsheaders',
     'django_cleanup.apps.CleanupConfig',
 ]
@@ -155,11 +158,15 @@ STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'app.MyUser'
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication'
-    ],
-}
-
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = False
+
+# PROD ONLY
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# CSRF_COOKIE_DOMAIN = 'localhost:8080'
