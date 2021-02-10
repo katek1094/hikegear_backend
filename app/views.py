@@ -116,13 +116,10 @@ class Lol(BasePermission):
         return True
 
 
-
-
-class GetView(APIView):
-    permission_classes = [Lol]
+class TestView(APIView):
+    permission_classes = [IsAuthenticated]
 
     @staticmethod
-    def get(request):
-
+    def post(request):
         print(request)
         return Response({'info': 'xd'})
