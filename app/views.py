@@ -123,5 +123,6 @@ class GetView(APIView):
 
     @staticmethod
     def get(request):
+
         print(request)
         return Response({'info': 'xd'})
