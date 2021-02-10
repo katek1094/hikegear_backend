@@ -77,7 +77,6 @@ class UserViewSet(GenericViewSet, CreateModelMixin):
             return Response({'info': 'provided wrong password!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# TODO: csrf token for login view?
 class LoginView(APIView):
     @staticmethod
     def post(request):

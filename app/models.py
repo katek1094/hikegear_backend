@@ -54,7 +54,6 @@ class Profile(models.Model):
 @receiver(post_save, sender=MyUser)
 def create_profile(sender, instance=None, created=False, **kwargs):
     if created:
-        # Token.objects.create(user=instance)
         Profile.objects.create(user=instance)
 
 
