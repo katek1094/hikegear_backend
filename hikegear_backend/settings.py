@@ -98,8 +98,8 @@ if DEVELOPMENT_MODE is True:
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'hikegear',
-            'USER': 'kajetan',
-            'PASSWORD': '322100kajt',
+            'USER': os.getenv("LOCAL_DEVELOPMENT_POSTGRES_USER"),
+            'PASSWORD': os.getenv("LOCAL_DEVELOPMENT_POSTGRES_PASSWORD"),
             'HOST': '127.0.0.1',
             'PORT': '5432',
         }
