@@ -21,7 +21,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# FORCE_SCRIPT_NAME = os.getenv("FORCE_SCRIPT_NAME")
+FORCE_SCRIPT_NAME = os.getenv("FORCE_SCRIPT_NAME")
 
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "False") == "True"
 
