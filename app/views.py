@@ -103,12 +103,3 @@ class LogoutView(APIView):
     def post(request):
         logout(request)
         return Response({'info': 'Your are logged out'})
-
-
-class TestView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @staticmethod
-    def post(request):
-        print(request)
-        return Response({'info': 'xd'})

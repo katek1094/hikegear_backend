@@ -2,7 +2,6 @@
 
 # from PIL import Image as Img
 from rest_framework.test import APIClient
-# from rest_framework.authtoken.models import Token
 # from django.core.files.base import File
 from django.test import TestCase
 
@@ -44,10 +43,10 @@ class DRFTesterCase(TestCase):
             raise DRFTesterException('url not declared!')
 
     def login_client(self, user_instance):
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + user_instance.auth_token.key)
+        self.client.force_login(user_instance)
 
     def logout_client(self):
-        self.client.credentials()
+        self.client.logout()
 
     # def generate_photo_file(self):
     #     file = io.BytesIO()
