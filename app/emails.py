@@ -25,7 +25,7 @@ def send_account_activation_email(request, user):
     }
     activation_url = reverse("activate_account", kwargs=kwargs)
     activate_url = f"{request.scheme}://{request.get_host()}{activation_url}"
-    context = {'user': user, 'activate_url': activate_url}
+    context = {'user': user.email, 'activate_url': activate_url}
     html_content = render_to_string(template_name, context)
     email = EmailMultiAlternatives(subject, text_content, from_email, recipients)
     email.attach_alternative(html_content, "text/html")
