@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
 from .models import MyUser, Profile, Backpack
@@ -44,27 +43,3 @@ class UserSerializer(serializers.ModelSerializer):
         except ValidationError as msg:
             raise serializers.ValidationError(msg)
         return user
-
-
-class MyTokenSerializer(serializers.Serializer):
-    email = serializers.CharField(label='email', write_only=True)
-    password = serializers.CharField(label='password', style={'input_type': 'password'}, write_only=True)
-    token = serializers.CharField(label="Token", read_only=True)
-
-    def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
-        if email and password:
-            user = authenticate(request=self.context.get('request'), email=email, password=password)
-            if not user:
-                raise serializers.ValidationError('Unable to log in with provided credentials.', code='authorization')
-        else:
-            raise serializers.ValidationError('Must include "email" and "password".', code='authorization')
-        attrs['user'] = user
-        return attrs
-
-    def create(self, validated_data):
-        pass
-
-    def update(self, instance, validated_data):
-        pass

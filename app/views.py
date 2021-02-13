@@ -1,19 +1,18 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from .models import MyUser, Backpack
 from .permissions import IsAuthenticatedOrPostOnly, IsOwnerPermission
-from .serializers import MyTokenSerializer, UserSerializer, BackpackSerializer, BackpackReadSerializer
+from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer
 
 
 class InitialView(APIView):
@@ -78,5 +77,29 @@ class UserViewSet(GenericViewSet, CreateModelMixin):
             return Response({'info': 'provided wrong password!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ObtainAuthTokenView(ObtainAuthToken):
-    serializer_class = MyTokenSerializer
+class LoginView(APIView):
+    @staticmethod
+    def post(request):
+        try:
+            email = request.data['email']
+            password = request.data['password']
+        except KeyError:
+            msg = "you must provide 'email' and 'password'"
+            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            login(request, user)
+            msg = "You are successfully logged in"
+            return Response({'info': msg})
+        else:
+            msg = "can not login with provided credentials"
+            return Response({'info': msg}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def post(request):
+        logout(request)
+        return Response({'info': 'Your are logged out'})

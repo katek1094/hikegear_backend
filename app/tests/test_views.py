@@ -1,4 +1,3 @@
-from rest_framework.authtoken.models import Token
 from app.models import MyUser, Profile, Backpack
 from .drf_tester import DRFTesterCase
 
@@ -9,7 +8,7 @@ class InitialViewTestCase(DRFTesterCase):
 
     def test_unauthorized_get_method(self):
         response = self.client.get(self.url)
-        self.status_check(response, 401)
+        self.status_check(response, 403)
 
     def test_authorized_valid_get_request(self):
         self.login_client(self.user1)
@@ -30,7 +29,7 @@ class BackPackViewSetTestCase(DRFTesterCase):
     def test_unauthorized_valid_get_request(self):
         backpack = Backpack.objects.create(profile=self.user1.profile)
         response = self.client.get(self.url + str(backpack.id) + '/')
-        self.status_check(response, 401)
+        self.status_check(response, 403)
 
     def test_authorized_valid_get_request_of_yours_data(self):
         self.get_request(self.user1, self.user1)
@@ -56,7 +55,7 @@ class BackPackViewSetTestCase(DRFTesterCase):
 
     def test_unauthorized_valid_post_request(self):
         request = self.client.post(self.url, {'name': self.name, 'list': self.list}, format='json')
-        self.status_check(request, 401)
+        self.status_check(request, 403)
 
     def test_authorized_valid_post_request(self):
         self.login_client(self.user1)
@@ -68,7 +67,7 @@ class BackPackViewSetTestCase(DRFTesterCase):
 
     def test_unauthorized_valid_patch_request(self):
         request = self.client.patch(self.url, {'name': self.name, 'list': self.list}, format='json')
-        self.status_check(request, 401)
+        self.status_check(request, 403)
 
     def test_authorized_valid_patch_request_of_yours_data(self):
         backpack = Backpack.objects.create(profile=self.user1.profile)
@@ -89,7 +88,7 @@ class BackPackViewSetTestCase(DRFTesterCase):
     def test_unauthorized_valid_delete_request(self):
         backpack = Backpack.objects.create(profile=self.user1.profile)
         request = self.client.delete(self.url + str(backpack.id) + '/')
-        self.status_check(request, 401)
+        self.status_check(request, 403)
 
     def test_authorized_valid_delete_request_of_yours_data(self):
         backpack = Backpack.objects.create(profile=self.user1.profile)
@@ -112,7 +111,7 @@ class TestUserViewSetChangePasswordAction(DRFTesterCase):
     def test_unauthorized_valid_request(self):
         response = self.client.patch(self.url, {'old_password': self.user1data['password'],
                                                 'new_password': self.valid_new_password})
-        self.status_check(response, 401)
+        self.status_check(response, 403)
 
     def test_authorized_valid_request(self):
         self.login_client(self.user1)
@@ -159,7 +158,6 @@ class TestUserViewSetCreateAction(DRFTesterCase):
         self.check_response_fields(json)
         self.assertTrue(MyUser.objects.get(**json).check_password(self.new_user_data['password']))
         self.assertTrue(Profile.objects.get(user_id=json['id']))
-        self.assertTrue(Token.objects.get(user_id=json['id']))
 
     def test_post_method_data_missing(self):
         response = self.client.post(self.url)
@@ -180,14 +178,3 @@ class TestUserViewSetCreateAction(DRFTesterCase):
     def test_post_method_password_invalid(self):
         response = self.client.post(self.url, {'email': self.new_user_data['email'], 'password': '1k2j3b6'})
         self.status_check(response, 400)
-
-
-class ObtainTokenTestCase(DRFTesterCase):
-    url = '/api/obtain_token'
-
-    def test_obtaining_token(self):
-        response = self.client.post(self.url, {'email': self.user1data['email'],
-                                               'password': self.user1data['password']})
-        self.status_check(response, 200)
-        self.assertTrue('token' in response.json())
-        self.assertEqual(response.json()['token'], self.user1.auth_token.key)
