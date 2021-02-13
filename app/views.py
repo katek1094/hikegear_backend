@@ -1,11 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.mixins import DestroyModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -13,6 +13,7 @@ from rest_framework.viewsets import GenericViewSet
 from .models import MyUser, Backpack
 from .permissions import IsAuthenticatedOrPostOnly, IsOwnerPermission
 from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer
+from .emails import send_account_activation_email
 
 
 class InitialView(APIView):
@@ -52,11 +53,18 @@ class BackpackViewSet(GenericViewSet, DestroyModelMixin):
         return self.update(request, *args, **kwargs)
 
 
-class UserViewSet(GenericViewSet, CreateModelMixin):
+class UserViewSet(GenericViewSet):
     permission_classes = [IsAuthenticatedOrPostOnly]
     serializer_class = UserSerializer
     queryset = MyUser.objects.all()
     http_method_names = ['post', 'patch']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        send_account_activation_email(request, user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['patch'])
     def change_password(self, request):
@@ -80,6 +88,8 @@ class UserViewSet(GenericViewSet, CreateModelMixin):
 class LoginView(APIView):
     @staticmethod
     def post(request):
+        bad_credentials_response = Response({'info': "can not login with provided credentials"},
+                                            status=status.HTTP_401_UNAUTHORIZED)
         try:
             email = request.data['email']
             password = request.data['password']
@@ -92,8 +102,16 @@ class LoginView(APIView):
             msg = "You are successfully logged in"
             return Response({'info': msg})
         else:
-            msg = "can not login with provided credentials"
-            return Response({'info': msg}, status=status.HTTP_401_UNAUTHORIZED)
+            try:
+                user = MyUser.objects.get(email=email)
+            except ObjectDoesNotExist:
+                return bad_credentials_response
+            else:
+                if user.is_active is True:
+                    return bad_credentials_response
+                else:
+                    return Response({'info': 'you have to verify your email and activate your account'},
+                                    status=status.HTTP_403_FORBIDDEN)
 
 
 class LogoutView(APIView):

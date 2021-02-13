@@ -38,6 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        validated_data['is_active'] = False
         try:
             user = MyUser.objects.create_user(**validated_data)
         except ValidationError as msg:
