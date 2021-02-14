@@ -80,6 +80,7 @@ class UserViewSet(GenericViewSet):
         if authenticate(email=request.user.email, password=old_password):
             request.user.set_password(new_password)
             request.user.save()
+            login(request, request.user)
             return Response()
         else:
             return Response({'info': 'provided wrong password!'}, status=status.HTTP_400_BAD_REQUEST)
