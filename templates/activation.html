@@ -1,16 +1,6 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Aktywacja Konta</title>
-</head>
-<body>
-<div style="display: flex; padding: 10px; justify-content: center;">
-    <div>
-        <h2> Witaj {{ user }}</h2>
-        <h2>Twoje konto w hikegear zostało utworzone. Kliknij w poniższy link, aby aktywować swoje konto. </h2>
-        <h2><a href="{{ activate_url }}"> Aktywuj konto </a></h2>
-    </div>
-</div>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block body_block %}
+    <h2> Witaj {{ user }}</h2>
+    <h2>Twoje konto w hikegear zostało utworzone. Kliknij w poniższy link, aby aktywować swoje konto. </h2>
+    <h2><a href="{{ activate_url }}"> Aktywuj konto </a></h2>
+{% endblock %}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>hikegear</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+</head>
+<body>
+<div class="outer">
+    <div class="inner">
+        {% block body_block %}
+        {% endblock %}
+    </div>
+</div>
+</body>
+</html>

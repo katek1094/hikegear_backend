@@ -71,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'app.context_processors.frontend_url'
             ],
         },
     },
@@ -110,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pl'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
@@ -121,6 +122,10 @@ STATIC_URL = '/static/'
 AUTH_USER_MODEL = 'app.MyUser'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
 
 CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = "Strict"
@@ -138,8 +143,9 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_SSL = False
-# DEFAULT_FROM_EMAIL = 'noreply@hikegear.pl'
+DEFAULT_FROM_EMAIL = 'hikegear.pl <noreply@hikegear.pl>'
 
 PASSWORD_RESET_TIMEOUT = 900  # 15 minutes
 
-FRONTEND_URL = os.getenv("FRONTEND_URL")
+FRONTEND_URL = os.getenv("FRONTEND_URL", )
+LOGIN_URL = FRONTEND_URL
