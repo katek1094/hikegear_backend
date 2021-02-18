@@ -12,8 +12,19 @@ from rest_framework.viewsets import GenericViewSet
 
 from .models import MyUser, Backpack
 from .permissions import IsAuthenticatedOrPostOnly, IsOwnerPermission
-from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer
+from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer
 from .emails import send_account_activation_email
+
+
+class PrivateGearView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def patch(request):
+        serializer = PrivateGearSerializer(request.user.profile, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(PrivateGearSerializer(serializer.save()).data)
+    # TODO: write tests and validation for all views/serializers
 
 
 class InitialView(APIView):
@@ -22,8 +33,11 @@ class InitialView(APIView):
     @staticmethod
     def get(request):
         backpacks = Backpack.objects.filter(profile=request.user.profile).order_by('-updated')
-        serializer = BackpackReadSerializer(backpacks, many=True)
-        return Response({'backpacks': serializer.data})
+        backpacks_serializer = BackpackReadSerializer(backpacks, many=True)
+        private_gear_serializer = PrivateGearSerializer(request.user.profile)
+        response = private_gear_serializer.data
+        response['backpacks'] = backpacks_serializer.data
+        return Response(response)
 
 
 class BackpackViewSet(GenericViewSet, DestroyModelMixin):
