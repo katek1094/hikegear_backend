@@ -45,7 +45,7 @@ class MyUser(AbstractUser):
 
 class Profile(models.Model):
     user = models.OneToOneField(MyUser, related_name='profile', on_delete=models.CASCADE, primary_key=True)
-    # private_gear = models.JSONField(default=list, blank=True)
+    private_gear = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return self.user.__str__()
