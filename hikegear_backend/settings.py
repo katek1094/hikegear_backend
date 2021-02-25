@@ -12,29 +12,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 project_folder = os.path.expanduser(BASE_DIR)
 load_dotenv(os.path.join(project_folder, '.env'))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
-
 FORCE_SCRIPT_NAME = os.getenv("FORCE_SCRIPT_NAME")
-
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "False") == "True"
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 CORS_ORIGIN_WHITELIST = [
-    'http://localhost:8081',
     'http://localhost:8080',
-    'https://hikegear.netlify.app',
-    'https://hk-sessions.netlify.app',
-    'http://192.168.0.106:8080',
     'http://127.0.0.1:8080',
-    # 'https://hikegear-sessions-6hwtl.ondigitalocean.app'
 ]
 
 # CORS_EXPOSE_HEADERS = [
@@ -84,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'app.context_processors.frontend_url'
             ],
         },
     },
@@ -114,20 +102,11 @@ elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # Internationalization
@@ -144,6 +123,10 @@ AUTH_USER_MODEL = 'app.MyUser'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+
 CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_HTTPONLY = False
@@ -152,3 +135,17 @@ SESSION_COOKIE_HTTPONLY = True
 # PROD ONLY
 CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "False") == "True"
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False") == "True"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = 'hikegear.pl <noreply@hikegear.pl>'
+
+PASSWORD_RESET_TIMEOUT = 900  # 15 minutes
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", )
+LOGIN_URL = FRONTEND_URL

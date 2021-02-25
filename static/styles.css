@@ -1,0 +1,14 @@
+body {
+    padding-top: 50px;
+    background-color: #efeded;
+    font-size: 18px;
+}
+
+.outer {
+    display: flex;
+    justify-content: center;
+}
+
+input {
+    padding: 4px;
+}

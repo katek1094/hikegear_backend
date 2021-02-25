@@ -5,6 +5,19 @@ from .models import MyUser, Profile, Backpack
 from .fields import CurrentProfileDefault
 
 
+class PrivateGearSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['private_gear']
+
+    def validate(self, data):
+        try:
+            private_gear = data['private_gear']
+        except KeyError:
+            raise serializers.ValidationError("You must provide 'private_gear'")
+        return data
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
@@ -19,7 +32,6 @@ class BackpackReadSerializer(serializers.ModelSerializer):
         fields = ['id', 'created', 'updated', 'profile', 'name', 'description', 'list']
         read_only_fields = ['__all__']
 
-
 class BackpackSerializer(serializers.ModelSerializer):
     profile = serializers.PrimaryKeyRelatedField(
         default=CurrentProfileDefault(),
@@ -29,6 +41,7 @@ class BackpackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Backpack
         fields = ['profile', 'name', 'description', 'list']
+# TODO: write validate method
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -38,6 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        validated_data['is_active'] = False
         try:
             user = MyUser.objects.create_user(**validated_data)
         except ValidationError as msg:
