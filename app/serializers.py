@@ -32,6 +32,7 @@ class BackpackReadSerializer(serializers.ModelSerializer):
         fields = ['id', 'created', 'updated', 'profile', 'name', 'description', 'list']
         read_only_fields = ['__all__']
 
+
 class BackpackSerializer(serializers.ModelSerializer):
     profile = serializers.PrimaryKeyRelatedField(
         default=CurrentProfileDefault(),
