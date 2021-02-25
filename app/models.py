@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.translation import ugettext_lazy as _
 
 
 class MyUserManager(BaseUserManager):
@@ -44,7 +45,7 @@ class MyUser(AbstractUser):
 
 class Profile(models.Model):
     user = models.OneToOneField(MyUser, related_name='profile', on_delete=models.CASCADE, primary_key=True)
-    private_gear = models.JSONField(default=list)
+    private_gear = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return self.user.__str__()
