@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.mixins import DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -14,6 +15,26 @@ from .models import MyUser, Backpack
 from .permissions import IsAuthenticatedOrPostOnly, IsOwnerPermission
 from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer
 from .emails import send_account_activation_email
+from .lpscraper import import_backpack_from_lp
+
+
+class ImportFromLpView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def post(request):
+        try:
+            url = request.data['url']
+        except KeyError:
+            msg = "you must provide 'url' of LighterPack backpack"
+            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+        json_data = import_backpack_from_lp(url)
+        if not json_data:
+            raise NotFound
+        backpack = Backpack.objects.create(profile=request.user.profile, name=json_data['name'],
+                                           description=json_data['description'], list=json_data['list'])
+        serializer = BackpackReadSerializer(backpack)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class PrivateGearView(APIView):
