@@ -13,11 +13,11 @@ load_dotenv(os.path.join(project_folder, '.env'))
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = os.environ['DEBUG'] == "True"
 
-ALLOWED_HOSTS = [os.environ["DJANGO_ALLOWED_HOSTS"]]
+ALLOWED_HOSTS = os.environ["DJANGO_ALLOWED_HOSTS"].split(',')
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:8080',
-    'http://127.0.0.1:8080',
+    'http://127.0.0.1:8081',
 ]
 
 # CORS_EXPOSE_HEADERS = [
@@ -131,8 +131,7 @@ DEFAULT_FROM_EMAIL = 'hikegear.pl <noreply@hikegear.pl>'
 
 PASSWORD_RESET_TIMEOUT = 900  # 15 minutes
 
-# # FRONTEND_URL = os.environ["FRONTEND_URL"]
-FRONTEND_URL = ALLOWED_HOSTS[0]
+FRONTEND_URL = os.environ['FRONTEND_URL']
 # LOGIN_URL = FRONTEND_URL
 
 # FORCE_SCRIPT_NAME = os.environ["FORCE_SCRIPT_NAME"]

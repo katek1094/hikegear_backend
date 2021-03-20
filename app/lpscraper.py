@@ -54,6 +54,7 @@ def import_backpack_from_lp(url):
         return False
     ready_to_json = {'name': scrape_data['name'], 'description': scrape_data['description'], 'list': []}
     categories_id_counter = 0
+    items_id_counter = 0
     for category in scrape_data['categories']:
         ready_to_json['list'].append({
             'id': categories_id_counter,
@@ -61,7 +62,6 @@ def import_backpack_from_lp(url):
             'items': []
         })
         categories_id_counter += 1
-        items_id_counter = 0
         for item in category['items']:
             if item['weight'] == '':
                 item['weight'] = 0
