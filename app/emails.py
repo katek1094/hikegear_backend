@@ -14,8 +14,8 @@ from hikegear_backend.settings import FRONTEND_URL
 
 
 def send_account_activation_email(request, user):
-    text_content = 'Account Activation Email'
-    subject = 'Account Activation'
+    text_content = 'Aktywacja konta'
+    subject = 'Aktywacja konta'
     template_name = "activation.html"
     from_email = settings.DEFAULT_FROM_EMAIL
     recipients = [user.email]
@@ -42,7 +42,10 @@ def activate_user_account(request, uidb64=None, token=None):
         user.is_active = True
         user.save()
         login(request, user)
-        return redirect(FRONTEND_URL)
+        return redirect(FRONTEND_URL + 'edytor')
     else:
-        user.delete()
-        return render(request, 'activation_link_expired.html', {'register_url': FRONTEND_URL + 'register'})
+        if not user.is_active:
+            user.delete()
+            return render(request, 'activation_link_expired.html', {'register_url': FRONTEND_URL + 'rejestracja'})
+        else:
+            return redirect(FRONTEND_URL + 'logowanie')

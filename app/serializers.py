@@ -26,11 +26,18 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class BackpackReadSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
+    is_owner = serializers.SerializerMethodField()
 
     class Meta:
         model = Backpack
-        fields = ['id', 'created', 'updated', 'profile', 'name', 'description', 'list']
+        fields = ['id', 'created', 'updated', 'profile', 'is_owner', 'name', 'description', 'list']
         read_only_fields = ['__all__']
+
+    def get_is_owner(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
+        profile = self.context['request'].user.profile
+        return profile == obj.profile
 
 
 class BackpackSerializer(serializers.ModelSerializer):
@@ -42,6 +49,8 @@ class BackpackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Backpack
         fields = ['profile', 'name', 'description', 'list']
+
+
 # TODO: write validate method
 
 

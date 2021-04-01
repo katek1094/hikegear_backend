@@ -6,6 +6,8 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'backpacks', BackpackViewSet)
 
+# from django.views.decorators.csrf import ensure_csrf_cookie
+
 urlpatterns = [
     path('initial', InitialView.as_view(), name='initial_view'),
     path('login', LoginView.as_view(), name='login_view'),

@@ -102,12 +102,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Warsaw'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-STATIC_URL = '/static/'
+STATIC_URL = '/backend/static/'
 STATIC_ROOT = 'static'
 
 AUTH_USER_MODEL = 'app.MyUser'
@@ -116,17 +116,18 @@ CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
+# SESSION_COOKIE_HTTPONLY = False
 
 CSRF_COOKIE_SECURE = os.environ["CSRF_COOKIE_SECURE"] == 'True'
 SESSION_COOKIE_SECURE = os.environ["SESSION_COOKIE_SECURE"] == 'True'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
+EMAIL_HOST = 'smtpout.secureserver.net'
+EMAIL_USE_TLS = False
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
 EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"]
 EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
-EMAIL_USE_SSL = False
 DEFAULT_FROM_EMAIL = 'hikegear.pl <noreply@hikegear.pl>'
 
 PASSWORD_RESET_TIMEOUT = 900  # 15 minutes
@@ -135,3 +136,4 @@ FRONTEND_URL = os.environ['FRONTEND_URL']
 # LOGIN_URL = FRONTEND_URL
 
 # FORCE_SCRIPT_NAME = os.environ["FORCE_SCRIPT_NAME"]
+# http://www.hikegear.pl/backend/activate_account/MzE/ajx4jo-01fede1ebf803360cba913d92219b319

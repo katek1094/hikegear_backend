@@ -1,12 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.mixins import DestroyModelMixin
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -33,7 +34,7 @@ class ImportFromLpView(APIView):
             raise NotFound
         backpack = Backpack.objects.create(profile=request.user.profile, name=json_data['name'],
                                            description=json_data['description'], list=json_data['list'])
-        serializer = BackpackReadSerializer(backpack)
+        serializer = BackpackReadSerializer(backpack, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -54,7 +55,7 @@ class InitialView(APIView):
     @staticmethod
     def get(request):
         backpacks = Backpack.objects.filter(profile=request.user.profile).order_by('-updated')
-        backpacks_serializer = BackpackReadSerializer(backpacks, many=True)
+        backpacks_serializer = BackpackReadSerializer(backpacks, many=True, context={'request': request})
         private_gear_serializer = PrivateGearSerializer(request.user.profile)
         response = private_gear_serializer.data
         response['backpacks'] = backpacks_serializer.data
@@ -63,25 +64,26 @@ class InitialView(APIView):
 
 class BackpackViewSet(GenericViewSet, DestroyModelMixin):
     queryset = Backpack.objects.all()
-    permission_classes = [IsAuthenticated, IsOwnerPermission]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerPermission]
     serializer_class = BackpackSerializer
     http_method_names = ['get', 'post', 'delete', 'patch']
 
     @staticmethod
     def retrieve(request, pk=None):
         backpack = get_object_or_404(Backpack, id=pk)
-        return Response(BackpackReadSerializer(backpack).data)
+        return Response(BackpackReadSerializer(backpack, context={'request': request}).data)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(BackpackReadSerializer(serializer.save()).data, status=status.HTTP_201_CREATED)
+        return Response(BackpackReadSerializer(serializer.save(), context={'request': request}).data,
+                        status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        return Response(BackpackReadSerializer(serializer.save()).data)
+        return Response(BackpackReadSerializer(serializer.save(), context={'request': request}).data)
 
     def partial_update(self, request, *args, **kwargs):
         kwargs['partial'] = True
@@ -157,3 +159,7 @@ class LogoutView(APIView):
     def post(request):
         logout(request)
         return Response({'info': 'Your are logged out'})
+
+
+def health_check(request):
+    return HttpResponse('hikegear.pl')
