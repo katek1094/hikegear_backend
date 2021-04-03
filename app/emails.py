@@ -25,14 +25,28 @@ def send_account_activation_email(request, user):
     }
     activation_url = reverse("activate_account", kwargs=kwargs)
     activate_url = f"{request.scheme}://{request.get_host()}{activation_url}"
-    context = {'user': user.email, 'activate_url': activate_url}
-    html_content = render_to_string(template_name, context)
+    html_content = render_to_string(template_name, {'activate_url': activate_url})
     email = EmailMultiAlternatives(subject, text_content, from_email, recipients)
     email.attach_alternative(html_content, "text/html")
     email.send()
 
 
-def activate_user_account(request, uidb64=None, token=None):
+def send_password_reset_email(request, user):
+    text_content = 'Resetowanie hasła'
+    subject = 'Resetowanie hasła'
+    template_name = "password_reset_email.html"
+    from_email = settings.DEFAULT_FROM_EMAIL
+    recipients = [user.email]
+    uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+    token = default_token_generator.make_token(user)
+    reset_url = FRONTEND_URL + 'reset_hasla/' + uidb64 + '/' + token  # use request.schema
+    html_content = render_to_string(template_name, {'reset_url': reset_url})
+    email = EmailMultiAlternatives(subject, text_content, from_email, recipients)
+    email.attach_alternative(html_content, "text/html")
+    email.send()
+
+
+def activate_user_account_view(request, uidb64=None, token=None):
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
         user = MyUser.objects.get(pk=uid)
@@ -46,6 +60,6 @@ def activate_user_account(request, uidb64=None, token=None):
     else:
         if not user.is_active:
             user.delete()
-            return render(request, 'activation_link_expired.html', {'register_url': FRONTEND_URL + 'rejestracja'})
+            return redirect(FRONTEND_URL + 'link_wygasl')
         else:
             return redirect(FRONTEND_URL + 'logowanie')

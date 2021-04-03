@@ -1,7 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
@@ -15,7 +14,8 @@ from rest_framework.viewsets import GenericViewSet
 from .models import MyUser, Backpack
 from .permissions import IsAuthenticatedOrPostOnly, IsOwnerPermission
 from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer
-from .emails import send_account_activation_email
+from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
+    urlsafe_base64_decode
 from .lpscraper import import_backpack_from_lp
 
 
@@ -110,7 +110,7 @@ class UserViewSet(GenericViewSet):
             old_password = request.data['old_password']
             validate_password(new_password, request.user)
         except KeyError:
-            msg = "you must provide 'old_password' and 'new_password'"
+            msg = "You must provide 'old_password' and 'new_password'"
             return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as msg:
             return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
@@ -121,6 +121,51 @@ class UserViewSet(GenericViewSet):
             return Response()
         else:
             return Response({'info': 'provided wrong password!'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def reset_password_start(self, request):
+        try:
+            email = request.data['email']
+        except KeyError:
+            msg = 'You must provide email of user that password needs to be reset'
+            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = MyUser.objects.get(email=email)
+        except ObjectDoesNotExist:
+            return Response()
+        send_password_reset_email(request, user)
+        return Response()
+
+    @action(detail=False, methods=['post'])
+    def reset_password(self, request):
+        try:
+            password = request.data['password']
+        except KeyError:
+            return Response({'info': 'You must provide password'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            uidb64 = request.data['uidb64']
+        except KeyError:
+            return Response({'info': 'You must provide uidb64'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            token = request.data['token']
+        except KeyError:
+            return Response({'info': 'You must provide token'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user_id = force_text(urlsafe_base64_decode(uidb64))
+            user = MyUser.objects.get(pk=user_id)
+        except MyUser.DoesNotExist:
+            return Response('invalid uidb64', status=status.HTTP_404_NOT_FOUND)
+        if default_token_generator.check_token(user, token):
+            try:
+                validate_password(password, user)
+            except ValidationError as msg:
+                return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+            request.user.set_password(password)
+            request.user.save()
+            login(request, user)
+            return Response()
+        else:
+            return Response({'info': 'password reset token expired'}, status=status.HTTP_410_GONE)
 
 
 class LoginView(APIView):
@@ -159,7 +204,3 @@ class LogoutView(APIView):
     def post(request):
         logout(request)
         return Response({'info': 'Your are logged out'})
-
-
-def health_check(request):
-    return HttpResponse('hikegear.pl')

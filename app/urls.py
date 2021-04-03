@@ -1,12 +1,10 @@
 from django.urls import path
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from .views import UserViewSet, BackpackViewSet, InitialView, LoginView, LogoutView, PrivateGearView, ImportFromLpView
 
-router = DefaultRouter()
+router = SimpleRouter(trailing_slash=False)
 router.register(r'users', UserViewSet)
 router.register(r'backpacks', BackpackViewSet)
-
-# from django.views.decorators.csrf import ensure_csrf_cookie
 
 urlpatterns = [
     path('initial', InitialView.as_view(), name='initial_view'),
