@@ -13,10 +13,15 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = os.environ['DEBUG'] == "True"
 
 ALLOWED_HOSTS = os.environ["DJANGO_ALLOWED_HOSTS"].split(',')
+try:
+    CORS_ORIGIN_WHITELIST = os.environ["CORS_ORIGIN_WHITELIST"].split(',')
+except KeyError:
+    CORS_ORIGIN_WHITELIST = []
 
-CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:8000']
-
-CORS_ALLOW_CREDENTIALS = True  # TODO: delete on production? also include credentials in frontend apiFetch
+try:
+    CORS_ALLOW_CREDENTIALS = os.environ["CORS_ALLOW_CREDENTIALS"] == "True"
+except KeyError:
+    pass
 # it allows to adding cookies to cross site requests
 # The value of the 'Access-Control-Allow-Credentials' header in the response is '' which must be 'true'
 # when the request's credentials mode is 'include
@@ -115,7 +120,10 @@ PASSWORD_RESET_TIMEOUT = 900  # 15 minutes
 
 FRONTEND_URL = os.environ['FRONTEND_URL']
 
-# FORCE_SCRIPT_NAME = os.environ["FORCE_SCRIPT_NAME"]
+try:
+    FORCE_SCRIPT_NAME = os.environ["FORCE_SCRIPT_NAME"]
+except KeyError:
+    FORCE_SCRIPT_NAME = None
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
