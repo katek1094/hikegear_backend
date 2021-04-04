@@ -7,3 +7,5 @@ urlpatterns = [
     path('api/', include('app.urls')),
     path('activate_account/<uidb64>/<token>', activate_user_account_view, name='activate_account'),
 ]
+
+handler404 = 'app.views.page_not_found_view'

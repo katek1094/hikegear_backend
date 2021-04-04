@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -17,6 +17,7 @@ from .serializers import UserSerializer, BackpackSerializer, BackpackReadSeriali
 from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
     urlsafe_base64_decode
 from .lpscraper import import_backpack_from_lp
+from hikegear_backend.settings import FRONTEND_URL
 
 
 class ImportFromLpView(APIView):
@@ -204,3 +205,7 @@ class LogoutView(APIView):
     def post(request):
         logout(request)
         return Response({'info': 'Your are logged out'})
+
+
+def page_not_found_view(request, exception):
+    return redirect(FRONTEND_URL + 'not_found')
