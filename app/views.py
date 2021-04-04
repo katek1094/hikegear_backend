@@ -20,6 +20,26 @@ from .lpscraper import import_backpack_from_lp
 from hikegear_backend.settings import FRONTEND_URL
 
 
+class ImportFromHgView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def post(request):
+        try:
+            backpack_id = request.data['backpack_id']
+        except KeyError:
+            msg = "you must provide 'backpack_id' of hikegear.pl backpack"
+            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            backpack = Backpack.objects.get(id=backpack_id)
+        except Backpack.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        new_backpack = Backpack.objects.create(profile=request.user.profile, name=backpack.name,
+                                               description=backpack.description, list=backpack.list)
+        serializer = BackpackReadSerializer(new_backpack, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 class ImportFromLpView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -28,12 +48,12 @@ class ImportFromLpView(APIView):
         try:
             url = request.data['url']
         except KeyError:
-            msg = "you must provide 'url' of LighterPack backpack"
+            msg = "you must provide 'url' of lighterpack backpack"
             return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
         json_data = import_backpack_from_lp(url)
         if not json_data:
             raise NotFound
-        backpack = Backpack.objects.create(profile=request.user.profile, name=json_data['name'],
+        backpack = Backpack.objects.create(profile=request.user.profile, name=json_data['name'],  # TODO: validate
                                            description=json_data['description'], list=json_data['list'])
         serializer = BackpackReadSerializer(backpack, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -161,9 +181,10 @@ class UserViewSet(GenericViewSet):
                 validate_password(password, user)
             except ValidationError as msg:
                 return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
-            request.user.set_password(password)
-            request.user.save()
+            user.set_password(password)
+            user.save()
             login(request, user)
+
             return Response()
         else:
             return Response({'info': 'password reset token expired'}, status=status.HTTP_410_GONE)

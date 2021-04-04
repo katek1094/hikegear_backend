@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
-from .views import UserViewSet, BackpackViewSet, InitialView, LoginView, LogoutView, PrivateGearView, ImportFromLpView
+from .views import UserViewSet, BackpackViewSet, InitialView, LoginView, LogoutView, PrivateGearView, ImportFromLpView, \
+    ImportFromHgView
 
 router = SimpleRouter(trailing_slash=False)
 router.register(r'users', UserViewSet)
@@ -12,5 +13,6 @@ urlpatterns = [
     path('logout', LogoutView.as_view(), name='logout_view'),
     path('private_gear', PrivateGearView.as_view(), name='private_gear'),
     path('import_from_lp', ImportFromLpView.as_view(), name='import_from_lp'),
+    path('import_from_hg', ImportFromHgView.as_view(), name='import_from_hg'),
 ]
 urlpatterns += router.urls
