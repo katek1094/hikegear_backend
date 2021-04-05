@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -10,14 +10,16 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+import time
+from django.utils import timezone
 
 from .models import MyUser, Backpack
-from .permissions import IsAuthenticatedOrPostOnly, IsOwnerPermission
+from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
 from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer
 from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
     urlsafe_base64_decode
 from .lpscraper import import_backpack_from_lp
-from hikegear_backend.settings import FRONTEND_URL
+from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT, DEBUG
 
 
 class ImportFromHgView(APIView):
@@ -85,14 +87,12 @@ class InitialView(APIView):
 
 class BackpackViewSet(GenericViewSet, DestroyModelMixin):
     queryset = Backpack.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerPermission]
+    permission_classes = [BackpackPermission]
     serializer_class = BackpackSerializer
     http_method_names = ['get', 'post', 'delete', 'patch']
 
-    @staticmethod
-    def retrieve(request, pk=None):
-        backpack = get_object_or_404(Backpack, id=pk)
-        return Response(BackpackReadSerializer(backpack, context={'request': request}).data)
+    def retrieve(self, request, pk=None):
+        return Response(BackpackReadSerializer(self.get_object(), context={'request': request}).data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -101,6 +101,8 @@ class BackpackViewSet(GenericViewSet, DestroyModelMixin):
                         status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
+        if DEBUG:
+            time.sleep(.7)
         partial = kwargs.pop('partial', False)
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
@@ -118,6 +120,14 @@ class UserViewSet(GenericViewSet):
     http_method_names = ['post', 'patch']
 
     def create(self, request, *args, **kwargs):
+        try:
+            email = request.data['email']
+            user = MyUser.objects.get(email=email)
+            seconds_from_joined = (timezone.now() - user.date_joined).seconds
+            if not user.is_active and seconds_from_joined >= PASSWORD_RESET_TIMEOUT:
+                user.delete()
+        except (KeyError, MyUser.DoesNotExist):
+            pass
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()

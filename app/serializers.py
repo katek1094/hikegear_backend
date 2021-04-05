@@ -30,7 +30,7 @@ class BackpackReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Backpack
-        fields = ['id', 'created', 'updated', 'profile', 'is_owner', 'name', 'description', 'list']
+        fields = ['id', 'created', 'updated', 'profile', 'is_owner', 'private', 'name', 'description', 'list']
         read_only_fields = ['__all__']
 
     def get_is_owner(self, obj):
@@ -48,7 +48,7 @@ class BackpackSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Backpack
-        fields = ['profile', 'name', 'description', 'list']
+        fields = ['profile', 'name', 'description', 'list', 'private']
 
 
 # TODO: write validate method
