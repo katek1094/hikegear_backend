@@ -36,6 +36,8 @@ class ImportFromHgView(APIView):
             backpack = Backpack.objects.get(id=backpack_id)
         except Backpack.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        if not backpack.shared and request.user.profile is not backpack.profile:
+            return Response({"info": 'this backpack is not shared'}, status=status.HTTP_403_FORBIDDEN)
         new_backpack = Backpack.objects.create(profile=request.user.profile, name=backpack.name,
                                                description=backpack.description, list=backpack.list)
         serializer = BackpackReadSerializer(new_backpack, context={'request': request})

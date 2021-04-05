@@ -64,7 +64,7 @@ class Backpack(models.Model):
     name = models.CharField(max_length=60, default='', blank=True)
     description = models.TextField(max_length=10000, default='', blank=True)
     list = models.JSONField(default=list)
-    private = models.BooleanField(default=True)
+    shared = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

@@ -22,9 +22,9 @@ class BackpackPermission(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
-            if obj.private:
-                return obj.profile.user == request.user
-            else:
+            if obj.shared:
                 return True
+            else:
+                return obj.profile.user == request.user
         else:
             return obj.profile.user == request.user
