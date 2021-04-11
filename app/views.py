@@ -1,7 +1,8 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -11,7 +12,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 import time
-from django.utils import timezone
 
 from .models import MyUser, Backpack
 from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
@@ -57,8 +57,6 @@ class ImportFromLpView(APIView):
         json_data = import_backpack_from_lp(url)
         if not json_data:
             raise NotFound
-        backpack = Backpack.objects.create(profile=request.user.profile, name=json_data['name'],  # TODO: validate
-                                           description=json_data['description'], list=json_data['list'])
         json_data['profile'] = request.user.profile
         serializer = BackpackSerializer(data=json_data)
         serializer.is_valid(raise_exception=True)
@@ -245,3 +243,27 @@ class LogoutView(APIView):
 
 def page_not_found_view(request, exception):
     return redirect(FRONTEND_URL + 'not_found')
+
+
+def stats_view(request):
+    users = MyUser.objects.all()
+    backpacks = Backpack.objects.all()
+    time_threshold24 = timezone.now() - timezone.timedelta(hours=24)
+    time_threshold1 = timezone.now() - timezone.timedelta(hours=1)
+    time_threshold10 = timezone.now() - timezone.timedelta(minutes=10)
+    context = {
+        'users': {
+            'all': len(users),
+            'last24h': len(users.filter(date_joined__gt=time_threshold24)),
+            'last1h': len(users.filter(date_joined__gt=time_threshold1)),
+            'last10min': len(users.filter(date_joined__gt=time_threshold10)),
+        },
+        'backpacks': {
+            'all': len(backpacks),
+            'last24h': len(backpacks.filter(created__gt=time_threshold24)),
+            'last1h': len(backpacks.filter(created__gt=time_threshold1)),
+            'last10min': len(backpacks.filter(created__gt=time_threshold10)),
+        },
+    }
+
+    return render(request, 'stats.html', context)

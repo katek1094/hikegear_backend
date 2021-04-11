@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block body_block %}
+    <h2>liczba użytkowników</h2>
+    <p>ogólnie: <b>{{ users.all }}</b></p>
+    <p>dołączyli w ostatnie 24h: <b>{{ users.last24h }}</b></p>
+    <p>dołączyli w ciągu ostatniej godziny: <b>{{ users.last1h }}</b></p>
+    <p>dołączyli w ciągu ostatnich 10 minut: <b>{{ users.last10min }}</b></p>
+
+    <h2>liczba plecaków</h2>
+    <p>ogólnie: <b>{{ backpacks.all }}</b></p>
+    <p>utworzone w ostatnie 24h: <b>{{ backpacks.last24h }}</b></p>
+    <p>utworzone w ciągu ostatniej godziny: <b>{{ backpacks.last1h }}</b></p>
+    <p>utworzone w ciągu ostatnich 10 minut: <b>{{ backpacks.last10min }}</b></p>
+{% endblock %}

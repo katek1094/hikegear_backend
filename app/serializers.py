@@ -61,8 +61,6 @@ class BackpackSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(msg)
         return backpack
 
-# TODO: write validate method
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
