@@ -59,8 +59,11 @@ class ImportFromLpView(APIView):
             raise NotFound
         backpack = Backpack.objects.create(profile=request.user.profile, name=json_data['name'],  # TODO: validate
                                            description=json_data['description'], list=json_data['list'])
-        serializer = BackpackReadSerializer(backpack, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        json_data['profile'] = request.user.profile
+        serializer = BackpackSerializer(data=json_data)
+        serializer.is_valid(raise_exception=True)
+        return Response(BackpackReadSerializer(serializer.save(), context={'request': request}).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class PrivateGearView(APIView):

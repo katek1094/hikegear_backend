@@ -14,7 +14,7 @@ class PrivateGearSerializer(serializers.ModelSerializer):
         try:
             private_gear = data['private_gear']
         except KeyError:
-            raise serializers.ValidationError("You must provide 'private_gear'")
+            raise serializers.ValidationError("You must provide 'private_gear'")  # useless?
         return data
 
 
@@ -50,6 +50,16 @@ class BackpackSerializer(serializers.ModelSerializer):
         model = Backpack
         fields = ['profile', 'name', 'description', 'list', 'shared']
 
+    def create(self, validated_data):
+        if len(validated_data['name']) > 60:
+            validated_data['name'] = validated_data['name'][:59]
+        if len(validated_data['description']) > 1000:
+            validated_data['description'] = validated_data['description'][:999]
+        try:
+            backpack = Backpack.objects.create(**validated_data)
+        except ValidationError as msg:
+            raise serializers.ValidationError(msg)
+        return backpack
 
 # TODO: write validate method
 
