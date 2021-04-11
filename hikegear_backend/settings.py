@@ -116,7 +116,7 @@ EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"]
 EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
 DEFAULT_FROM_EMAIL = 'hikegear.pl <noreply@hikegear.pl>'
 
-PASSWORD_RESET_TIMEOUT = 900  # 15 minutes
+PASSWORD_RESET_TIMEOUT = 1200  # 20 minutes
 
 FRONTEND_URL = os.environ['FRONTEND_URL']
 
