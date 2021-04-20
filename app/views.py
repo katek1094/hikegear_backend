@@ -7,10 +7,14 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.mixins import DestroyModelMixin
+from rest_framework.parsers import FileUploadParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+
+from openpyxl import load_workbook
+
 import time
 
 from .models import MyUser, Backpack
@@ -19,7 +23,64 @@ from .serializers import UserSerializer, BackpackSerializer, BackpackReadSeriali
 from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
     urlsafe_base64_decode
 from .lpscraper import import_backpack_from_lp
+from . import constants
 from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT, DEBUG
+
+
+def new_my_gear_cat_id(private_gear):
+    ids = []
+    for cat in private_gear:
+        ids.append(cat['id'])
+    for x in range(1000):
+        if x not in ids:
+            return x
+    return False
+
+
+class ImportFromExcel(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    @staticmethod
+    def post(request):
+        try:
+            wb = load_workbook(request.data['excel'])
+        except KeyError:
+            return Response('bad format', status=status.HTTP_400_BAD_REQUEST)
+        data = wb.active['A:C']
+        if len(data[0]) > 1000:
+            return Response({'info': 'too many items'}, status=status.HTTP_400_BAD_REQUEST)
+        elif len(data[0]) == 0:
+            return Response({'info': 'no items supplied'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            old_list = request.user.profile.private_gear
+            new_categories = [{'name': 'importowane z pliku excel', 'items': [], 'id': new_my_gear_cat_id(old_list)}]
+            for (name, description, weight) in zip(data[0], data[1], data[2]):
+                if name.value == 'kategoria':
+                    new_id = new_my_gear_cat_id(old_list + new_categories)
+                    if not new_id:
+                        return Response("cant find new id for category", status=status.HTTP_400_BAD_REQUEST)
+                    new_categories.append({'name': description.value, 'items': [], 'id': new_id})
+                else:
+                    if name.value or description.value:
+                        final_name = ""
+                        final_description = ""
+                        final_weight = 0
+                        if isinstance(name.value, (str, int)):
+                            final_name = name.value[:constants.item_max_name_len]
+                        if isinstance(description.value, (str, int)):
+                            final_description = description.value[:constants.item_max_description_len]
+                        if isinstance(weight.value, int):
+                            if weight.value <= constants.item_max_weight:
+                                final_weight = weight.value
+                            else:
+                                final_weight = constants.item_max_weight
+                        new_categories[-1]['items'].append(
+                            {'name': final_name, 'description': final_description, 'weight': final_weight})
+            data = {'private_gear': old_list + new_categories}
+            serializer = PrivateGearSerializer(request.user.profile, data=data)
+            serializer.is_valid(raise_exception=True)
+            return Response(PrivateGearSerializer(serializer.save()).data)
 
 
 class ImportFromHgView(APIView):

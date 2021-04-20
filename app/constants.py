@@ -1,0 +1,13 @@
+cat_max_name_len = 30
+item_max_name_len = 60
+item_max_description_len = 400
+item_max_weight = 99999
+item_max_quantity = 99
+backpack_max_name_length = 60
+backpack_max_description_length = 3000
+password_min_length = 8
+password_max_length = 128
+editor_save_timeout = 3000
+categories_max_amount = 16 
+items_in_category_max_amount = 30
+max_backpacks_amount = 40
