@@ -48,7 +48,7 @@ class ImportFromExcel(APIView):
         except KeyError:
             return Response('bad format', status=status.HTTP_400_BAD_REQUEST)
         data = wb.active['A:C']
-        if len(data[0]) > 1000:
+        if len(data[0]) > 2000:
             return Response({'info': 'too many items'}, status=status.HTTP_400_BAD_REQUEST)
         elif len(data[0]) == 0:
             return Response({'info': 'no items supplied'}, status=status.HTTP_400_BAD_REQUEST)
