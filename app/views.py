@@ -54,6 +54,10 @@ class ImportFromExcel(APIView):
             return Response({'info': 'no items supplied'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             old_list = request.user.profile.private_gear
+            items_ids = []
+            for cat in old_list:
+                for item in cat:
+                    items_ids.append(item.id)
             new_categories = [{'name': 'importowane z pliku excel', 'items': [], 'id': new_my_gear_cat_id(old_list)}]
             for (name, description, weight) in zip(data[0], data[1], data[2]):
                 if name.value == 'kategoria':
@@ -63,6 +67,11 @@ class ImportFromExcel(APIView):
                     new_categories.append({'name': description.value, 'items': [], 'id': new_id})
                 else:
                     if name.value or description.value:
+                        final_id = 0
+                        for x in range(10000):
+                            if x not in items_ids:
+                                items_ids.append(x)
+                                final_id = x
                         final_name = ""
                         final_description = ""
                         final_weight = 0
@@ -76,7 +85,8 @@ class ImportFromExcel(APIView):
                             else:
                                 final_weight = constants.item_max_weight
                         new_categories[-1]['items'].append(
-                            {'name': final_name, 'description': final_description, 'weight': final_weight})
+                            {'name': final_name, 'description': final_description, 'weight': final_weight,
+                             "id": final_id})
             data = {'private_gear': old_list + new_categories}
             serializer = PrivateGearSerializer(request.user.profile, data=data)
             serializer.is_valid(raise_exception=True)
@@ -328,3 +338,10 @@ def stats_view(request):
     }
 
     return render(request, 'stats.html', context)
+
+
+from django.http import HttpResponse
+
+
+def test_view(request):
+    return render(request, 'test.html')
