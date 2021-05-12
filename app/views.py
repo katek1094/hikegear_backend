@@ -338,10 +338,3 @@ def stats_view(request):
     }
 
     return render(request, 'stats.html', context)
-
-
-from django.http import HttpResponse
-
-
-def test_view(request):
-    return render(request, 'test.html')
