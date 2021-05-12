@@ -57,7 +57,7 @@ class ImportFromExcel(APIView):
             items_ids = []
             for cat in old_list:
                 for item in cat:
-                    items_ids.append(item.id)
+                    items_ids.append(item['id'])
             new_categories = [{'name': 'importowane z pliku excel', 'items': [], 'id': new_my_gear_cat_id(old_list)}]
             for (name, description, weight) in zip(data[0], data[1], data[2]):
                 if name.value == 'kategoria':
