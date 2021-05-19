@@ -40,7 +40,7 @@ def send_password_reset_email(request, user):
     recipients = [user.email]
     uidb64 = urlsafe_base64_encode(force_bytes(user.id))
     token = default_token_generator.make_token(user)
-    reset_url = FRONTEND_URL + 'reset_hasla/' + uidb64 + '/' + token  # use request.schema
+    reset_url = FRONTEND_URL + 'reset_hasla/' + uidb64 + '/' + token  # TODO: use request.schema?
     html_content = render_to_string(template_name, {'reset_url': reset_url})
     email = EmailMultiAlternatives(subject, text_content, from_email, recipients)
     email.attach_alternative(html_content, "text/html")

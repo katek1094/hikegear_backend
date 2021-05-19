@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.mixins import DestroyModelMixin
-from rest_framework.parsers import FileUploadParser, MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -27,22 +27,21 @@ from . import constants
 from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT, DEBUG
 
 
-def new_my_gear_cat_id(private_gear):
-    ids = []
-    for cat in private_gear:
-        ids.append(cat['id'])
-    for x in range(1000):
-        if x not in ids:
-            return x
-    return False
-
-
 class ImportFromExcel(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
     @staticmethod
-    def post(request):
+    def new_my_gear_cat_id(private_gear):
+        ids = []
+        for cat in private_gear:
+            ids.append(cat['id'])
+        for x in range(1000):
+            if x not in ids:
+                return x
+        return False
+
+    def post(self, request):
         try:
             wb = load_workbook(request.data['excel'])
         except KeyError:
@@ -58,10 +57,10 @@ class ImportFromExcel(APIView):
             for cat in old_list:
                 for item in cat:
                     items_ids.append(item.id)
-            new_categories = [{'name': 'importowane z pliku excel', 'items': [], 'id': new_my_gear_cat_id(old_list)}]
+            new_categories = [{'name': 'importowane z pliku excel', 'items': [], 'id': self.new_my_gear_cat_id(old_list)}]
             for (name, description, weight) in zip(data[0], data[1], data[2]):
                 if name.value == 'kategoria':
-                    new_id = new_my_gear_cat_id(old_list + new_categories)
+                    new_id = self.new_my_gear_cat_id(old_list + new_categories)
                     if not new_id:
                         return Response("cant find new id for category", status=status.HTTP_400_BAD_REQUEST)
                     new_categories.append({'name': description.value, 'items': [], 'id': new_id})
@@ -143,7 +142,6 @@ class PrivateGearView(APIView):
         serializer = PrivateGearSerializer(request.user.profile, data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(PrivateGearSerializer(serializer.save()).data)
-    # TODO: write tests and validation for all views/serializers
 
 
 class InitialView(APIView):
@@ -238,6 +236,8 @@ class UserViewSet(GenericViewSet):
             user = MyUser.objects.get(email=email)
         except ObjectDoesNotExist:
             return Response()
+        if not user.is_active:
+            return Response()
         send_password_reset_email(request, user)
         return Response()
 
@@ -268,7 +268,6 @@ class UserViewSet(GenericViewSet):
             user.set_password(password)
             user.save()
             login(request, user)
-
             return Response()
         else:
             return Response({'info': 'password reset token expired'}, status=status.HTTP_410_GONE)
