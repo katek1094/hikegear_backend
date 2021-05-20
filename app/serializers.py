@@ -11,13 +11,8 @@ class PrivateGearSerializer(serializers.ModelSerializer):
         fields = ['private_gear']
 
     def validate(self, data):
-        print(data)
-        # if 'private_gear' not in data:
-        #     raise serializers.ValidationError("You must provide 'private_gear'")
-        # try:
-        #     private_gear = data['private_gear']
-        # except KeyError:
-        #     raise serializers.ValidationError("You must provide 'private_gear'")  # useless?
+        if 'private_gear' not in data:
+            raise serializers.ValidationError("You must provide 'private_gear'")
         return data
 
 

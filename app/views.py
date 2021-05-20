@@ -27,7 +27,7 @@ from . import constants
 from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT, DEBUG
 
 
-class ImportFromExcel(APIView):
+class ImportFromExcelView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
@@ -55,9 +55,10 @@ class ImportFromExcel(APIView):
             old_list = request.user.profile.private_gear
             items_ids = []
             for cat in old_list:
-                for item in cat:
-                    items_ids.append(item.id)
-            new_categories = [{'name': 'importowane z pliku excel', 'items': [], 'id': self.new_my_gear_cat_id(old_list)}]
+                for item in cat['items']:
+                    items_ids.append(item['id'])
+            new_categories = [
+                {'name': 'importowane z pliku excel', 'items': [], 'id': self.new_my_gear_cat_id(old_list)}]
             for (name, description, weight) in zip(data[0], data[1], data[2]):
                 if name.value == 'kategoria':
                     new_id = self.new_my_gear_cat_id(old_list + new_categories)
@@ -71,6 +72,7 @@ class ImportFromExcel(APIView):
                             if x not in items_ids:
                                 items_ids.append(x)
                                 final_id = x
+                                break
                         final_name = ""
                         final_description = ""
                         final_weight = 0
@@ -106,7 +108,7 @@ class ImportFromHgView(APIView):
             backpack = Backpack.objects.get(id=backpack_id)
         except Backpack.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        if not backpack.shared and request.user.profile is not backpack.profile:
+        if not backpack.shared and request.user.profile != backpack.profile:
             return Response({"info": 'this backpack is not shared'}, status=status.HTTP_403_FORBIDDEN)
         new_backpack = Backpack.objects.create(profile=request.user.profile, name=backpack.name,
                                                description=backpack.description, list=backpack.list)

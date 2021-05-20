@@ -9,12 +9,96 @@ from app.models import MyUser, Profile, Backpack
 from .drf_tester import DRFTesterCase
 
 
+class ImportFromExcelViewTestCase(DRFTesterCase):
+    url = '/api/import_from_excel'
+
+    def test_unauthorized_request(self):
+        response = self.client.post(self.url)
+        self.status_check(response, 403)
+
+
+
+
+
+class ImportFromHgViewTestCase(DRFTesterCase):
+    url = '/api/import_from_hg'
+
+    def test_unauthorized_request(self):
+        response = self.client.post(self.url)
+        self.status_check(response, 403)
+
+    def test_id_missing(self):
+        self.login_client(self.user1)
+        response = self.client.post(self.url)
+        self.status_check(response, 400)
+
+    def test_invalid_id(self):
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'backpack_id': '2137'})
+        self.status_check(response, 404)
+
+    def test_yours_shared(self):
+        backpack = Backpack.objects.create(profile=self.user1.profile, shared=True)
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'backpack_id': backpack.id})
+        self.status_check(response, 201)
+
+    def test_yours_not_shared(self):
+        backpack = Backpack.objects.create(profile=self.user1.profile, shared=False)
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'backpack_id': backpack.id})
+        self.status_check(response, 201)
+
+    def test_others_shared(self):
+        backpack = Backpack.objects.create(profile=self.user2.profile, shared=True)
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'backpack_id': backpack.id})
+        self.status_check(response, 201)
+
+    def test_others_not_shared(self):
+        backpack = Backpack.objects.create(profile=self.user2.profile, shared=False)
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'backpack_id': backpack.id})
+        self.status_check(response, 403)
+
+
+class ImportFromLpViewTestCase(DRFTesterCase):
+    url = '/api/import_from_lp'
+
+    def test_unauthorized_request(self):
+        response = self.client.post(self.url)
+        self.status_check(response, 403)
+
+    def test_url_missing(self):
+        self.login_client(self.user1)
+        response = self.client.post(self.url)
+        self.status_check(response, 400)
+
+    def test_invalid_url(self):
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'url': 'https://lighterpack.com/r/badurl'})
+        self.status_check(response, 404)
+
+    def test_valid_request(self):
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'url': 'https://lighterpack.com/r/ttdjjm'})
+        self.status_check(response, 201)
+        new_backpack = Backpack.objects.get(profile=self.user1.profile)
+        self.assertEqual(new_backpack.name, 'for testing hikegear.pl')
+        self.assertEqual(new_backpack.description, 'test description')
+
+
 class PrivateGearViewTestCase(DRFTesterCase):
     url = '/api/private_gear'
 
     def test_unauthorized_request(self):
         response = self.client.patch(self.url)
         self.status_check(response, 403)
+
+    def test_private_gear_missing(self):
+        self.login_client(self.user1)
+        response = self.client.patch(self.url)
+        self.status_check(response, 400)
 
     def test_valid_request(self):
         self.login_client(self.user1)
