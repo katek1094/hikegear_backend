@@ -4,6 +4,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.conf import settings
 import json
+from openpyxl import Workbook
+import os
 
 from app.models import MyUser, Profile, Backpack
 from .drf_tester import DRFTesterCase
@@ -16,8 +18,29 @@ class ImportFromExcelViewTestCase(DRFTesterCase):
         response = self.client.post(self.url)
         self.status_check(response, 403)
 
-
-
+    def test_valid_request(self):
+        excel_file = open('private.xlsx', 'wb')
+        workbook = Workbook()
+        ws = workbook.active
+        ws.append(['plecak', 'OMW', 110])
+        ws.append(['śpiwór', 'haha', 232])
+        ws.append(['kategoria', 'nazwa kategorii'])
+        ws.append(['karimata', 'decathlon', 11])
+        workbook.save(excel_file)
+        self.login_client(self.user1)
+        excel_file.close()
+        excel_file = open('private.xlsx', 'rb')
+        response = self.client.post(self.url, {'excel': excel_file})
+        os.remove('private.xlsx')
+        self.status_check(response, 200)
+        self.assertEqual(response.json()['private_gear'], Profile.objects.get(user=self.user1).private_gear)
+        data = response.json()['private_gear']
+        self.assertEqual(len(data), 2)
+        self.assertEqual(data[0]['name'], 'importowane z pliku excel')
+        self.assertEqual(data[1]['name'], 'nazwa kategorii')
+        self.assertEqual(data[1]['items'][0]['name'], 'karimata')
+        self.assertEqual(data[1]['items'][0]['description'], 'decathlon')
+        self.assertEqual(data[1]['items'][0]['weight'], 11)
 
 
 class ImportFromHgViewTestCase(DRFTesterCase):
