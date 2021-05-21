@@ -68,3 +68,32 @@ class Backpack(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Brand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    parent = models.ForeignKey('self', related_name='subcategories', on_delete=models.PROTECT)
+
+
+class Product(models.Model):
+    SEX_CHOICES = [
+        ('unisex', 'unisex'),
+        ('male', 'male'),
+        ('female', 'female'),
+    ]
+    brand = models.ForeignKey(Brand, on_delete=models.PROTECT)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    name = models.CharField(max_length=100)
+    sex = models.CharField(max_length=6, choices=SEX_CHOICES, default='unisex', blank=True)
+
+
+class Review(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    weight = models.IntegerField(blank=True, null=True)
+    summary = models.CharField(max_length=120)
+    text = models.TextField(max_length=4000)
+
