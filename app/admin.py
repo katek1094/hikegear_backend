@@ -10,13 +10,14 @@ class SessionAdmin(ModelAdmin):
     @staticmethod
     def _session_data(obj):
         return obj.get_decoded()
+
     list_display = ['session_key', '_session_data', 'expire_date']
 
 
 class MyUserAdmin(UserAdmin):
     model = MyUser
-    list_display = ('email', 'is_staff', 'is_active',)
-    list_filter = ('email', 'is_staff', 'is_active',)
+    list_display = ('email', 'is_staff', 'is_active', 'date_joined')
+    list_filter = ('is_staff', 'is_active', 'date_joined')
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Permissions', {'fields': ('is_staff', 'is_active')}),
@@ -24,14 +25,27 @@ class MyUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active', )}
+            'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active',)}
          ),
     )
-    search_fields = ('email', )
-    ordering = ('email', )
+    search_fields = ('email',)
+    ordering = ('-date_joined',)
+
+
+class BackpackAdmin(ModelAdmin):
+    list_display = ['name', 'description', 'profile', 'created', 'updated', 'shared']
+    list_filter = ['created', 'updated', 'shared']
+
+
+class ProfileAdmin(ModelAdmin):
+    @staticmethod
+    def _backpacks_amount(obj):
+        return len(obj.backpacks.all())
+
+    list_display = ['user', '_backpacks_amount']
 
 
 admin.site.register(Session, SessionAdmin)
 admin.site.register(MyUser, MyUserAdmin)
-admin.site.register(Profile)
-admin.site.register(Backpack)
+admin.site.register(Profile, ProfileAdmin)
+admin.site.register(Backpack, BackpackAdmin)
