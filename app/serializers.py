@@ -1,8 +1,28 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
-from .models import MyUser, Profile, Backpack
+from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand
 from .fields import CurrentProfileDefault
+
+
+class BrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = ['name', 'id']
+
+
+class SubcategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subcategory
+        fields = ['id', 'name']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    subcategories = SubcategorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'subcategories']
 
 
 class PrivateGearSerializer(serializers.ModelSerializer):

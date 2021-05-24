@@ -73,10 +73,29 @@ class Backpack(models.Model):
 class Brand(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    parent = models.ForeignKey('self', related_name='subcategories', on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name_plural = 'categories'
+
+    def __str__(self):
+        return self.name
+
+
+class Subcategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='subcategories')
+
+    class Meta:
+        verbose_name_plural = 'subcategories'
+
+    def __str__(self):
+        return self.name
 
 
 class Product(models.Model):
@@ -86,9 +105,13 @@ class Product(models.Model):
         ('female', 'female'),
     ]
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT)
-    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    description = models.CharField(max_length=1000)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.PROTECT)
     name = models.CharField(max_length=100)
     sex = models.CharField(max_length=6, choices=SEX_CHOICES, default='unisex', blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Review(models.Model):
@@ -97,3 +120,5 @@ class Review(models.Model):
     summary = models.CharField(max_length=120)
     text = models.TextField(max_length=4000)
 
+    def __str__(self):
+        return self.summary

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.admin import ModelAdmin
 
-from .models import MyUser, Profile, Backpack
+from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand, Product, Review
 from django.contrib.sessions.models import Session
 
 
@@ -49,3 +49,8 @@ admin.site.register(Session, SessionAdmin)
 admin.site.register(MyUser, MyUserAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Backpack, BackpackAdmin)
+admin.site.register(Category)
+admin.site.register(Subcategory)
+admin.site.register(Brand)
+admin.site.register(Product)
+admin.site.register(Review)

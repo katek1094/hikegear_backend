@@ -17,9 +17,10 @@ from openpyxl import load_workbook
 
 import time
 
-from .models import MyUser, Backpack
+from .models import MyUser, Backpack, Category, Brand
 from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
-from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer
+from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer, \
+    CategorySerializer, BrandSerializer
 from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
     urlsafe_base64_decode
 from .lpscraper import import_backpack_from_lp
@@ -45,7 +46,7 @@ class ImportFromExcelView(APIView):
         try:
             wb = load_workbook(request.data['excel'])
         except KeyError:
-            return Response('bad format', status=status.HTTP_400_BAD_REQUEST)
+            return Response('bad format', status=status.HTTP_400_BAD_REQUEST)  # TODO: bad format ? wtf
         data = wb.active['A:C']
         if len(data[0]) > 2000:
             return Response({'info': 'too many items'}, status=status.HTTP_400_BAD_REQUEST)
@@ -156,6 +157,8 @@ class InitialView(APIView):
         private_gear_serializer = PrivateGearSerializer(request.user.profile)
         response = private_gear_serializer.data
         response['backpacks'] = backpacks_serializer.data
+        response['categories'] = CategorySerializer(Category.objects.all(), many=True).data
+        response['brands'] = BrandSerializer(Brand.objects.all(), many=True).data
         return Response(response)
 
 
