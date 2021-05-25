@@ -6,6 +6,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
+from simple_history.models import HistoricalRecords
+
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password, **extra_fields):
@@ -51,6 +53,13 @@ class CreatedUpdated(models.Model):
         abstract = True
 
 
+class TrackedHistory(models.Model):
+    history = HistoricalRecords(inherit=True)
+
+    class Meta:
+        abstract = True
+
+
 class Profile(models.Model):
     user = models.OneToOneField(MyUser, related_name='profile', on_delete=models.CASCADE, primary_key=True)
     private_gear = models.JSONField(default=list, blank=True)
@@ -76,7 +85,7 @@ class Backpack(CreatedUpdated):
         return self.name
 
 
-class Brand(CreatedUpdated):
+class Brand(CreatedUpdated, TrackedHistory):
     name = models.CharField(max_length=100, unique=True)
     author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
 
@@ -105,7 +114,7 @@ class Subcategory(models.Model):
         return self.name
 
 
-class Product(CreatedUpdated):
+class Product(CreatedUpdated, TrackedHistory):
     SEX_CHOICES = [
         ('unisex', 'unisex'),
         ('male', 'male'),
@@ -121,7 +130,7 @@ class Product(CreatedUpdated):
         return self.name
 
 
-class Review(CreatedUpdated):
+class Review(CreatedUpdated, TrackedHistory):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     weight = models.IntegerField(blank=True, null=True)
     summary = models.CharField(max_length=120)
