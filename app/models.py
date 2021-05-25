@@ -43,6 +43,14 @@ class MyUser(AbstractUser):
         return self.email
 
 
+class CreatedUpdated(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
 class Profile(models.Model):
     user = models.OneToOneField(MyUser, related_name='profile', on_delete=models.CASCADE, primary_key=True)
     private_gear = models.JSONField(default=list, blank=True)
@@ -57,9 +65,7 @@ def create_profile(sender, instance=None, created=False, **kwargs):
         Profile.objects.create(user=instance)
 
 
-class Backpack(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+class Backpack(CreatedUpdated):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='backpacks')
     name = models.CharField(max_length=60, default='', blank=True)
     description = models.TextField(max_length=10000, default='', blank=True)
@@ -70,8 +76,9 @@ class Backpack(models.Model):
         return self.name
 
 
-class Brand(models.Model):
+class Brand(CreatedUpdated):
     name = models.CharField(max_length=100, unique=True)
+    author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name
@@ -98,7 +105,7 @@ class Subcategory(models.Model):
         return self.name
 
 
-class Product(models.Model):
+class Product(CreatedUpdated):
     SEX_CHOICES = [
         ('unisex', 'unisex'),
         ('male', 'male'),
@@ -114,7 +121,7 @@ class Product(models.Model):
         return self.name
 
 
-class Review(models.Model):
+class Review(CreatedUpdated):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     weight = models.IntegerField(blank=True, null=True)
     summary = models.CharField(max_length=120)

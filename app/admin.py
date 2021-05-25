@@ -32,7 +32,11 @@ class MyUserAdmin(UserAdmin):
     ordering = ('-date_joined',)
 
 
-class BackpackAdmin(ModelAdmin):
+class CreatedUpdatedAdmin:
+    readonly_fields = ['updated', 'created']
+
+
+class BackpackAdmin(CreatedUpdatedAdmin, ModelAdmin):
     list_display = ['name', 'description', 'profile', 'created', 'updated', 'shared']
     list_filter = ['created', 'updated', 'shared']
 

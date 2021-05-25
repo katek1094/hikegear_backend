@@ -38,8 +38,11 @@ class SearchForProductView(APIView):
         if requested_query is not None:
             products = Product.objects.all()
             subcategory_id = request.query_params.get('subcategory_id')
+            category_id = request.query_params.get('category_id')
             if subcategory_id:
                 products = products.filter(subcategory=subcategory_id)
+            elif category_id:
+                products = products.filter(subcategory__category=category_id)
             brand_id = request.query_params.get('brand_id')
             if brand_id:
                 products = products.filter(brand=brand_id)
@@ -47,10 +50,10 @@ class SearchForProductView(APIView):
             if sex:
                 products = products.filter(sex=sex)
             results_by_name = products.annotate(similarity=TrigramSimilarity('name', requested_query)).filter(
-                similarity__gt=0.1).order_by('-similarity')
-            # for r in results_by_name:
-            #     print(r.name)
-            #     print(r.similarity)
+                similarity__gt=0).order_by('-similarity')
+            for r in products.annotate(similarity=TrigramSimilarity('name', requested_query)).order_by('-similarity'):
+                print(r.name)
+                print(r.similarity)
             return Response(ProductSerializer(results_by_name, many=True).data)
         else:
             return Response('you must provide query for search', status=status.HTTP_400_BAD_REQUEST)
