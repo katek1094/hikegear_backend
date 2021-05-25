@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector, TrigramSimilarity
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -17,15 +18,42 @@ from openpyxl import load_workbook
 
 import time
 
-from .models import MyUser, Backpack, Category, Brand
+from .models import MyUser, Backpack, Category, Brand, Product
 from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
 from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer, \
-    CategorySerializer, BrandSerializer
+    CategorySerializer, BrandSerializer, ProductSerializer
 from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
     urlsafe_base64_decode
 from .lpscraper import import_backpack_from_lp
 from . import constants
 from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT, DEBUG
+
+
+class SearchForProductView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def post(request):
+        requested_query = request.data.get('query')
+        if requested_query is not None:
+            products = Product.objects.all()
+            subcategory_id = request.data.get('subcategory_id')
+            if subcategory_id:
+                products = products.filter(subcategory=subcategory_id)
+            brand_id = request.data.get('brand_id')
+            if brand_id:
+                products = products.filter(brand=brand_id)
+            sex = request.data.get('sex')
+            if sex:
+                products = products.filter(sex=sex)
+            results_by_name = products.annotate(similarity=TrigramSimilarity('name', requested_query)).filter(
+                similarity__gt=0.1).order_by('-similarity')
+            for r in results_by_name:
+                print(r.name)
+                print(r.similarity)
+            return Response(ProductSerializer(results_by_name, many=True).data)
+        else:
+            return Response('you must provide query for search', status=status.HTTP_400_BAD_REQUEST)
 
 
 class ImportFromExcelView(APIView):
@@ -158,7 +186,7 @@ class InitialView(APIView):
         response = private_gear_serializer.data
         response['backpacks'] = backpacks_serializer.data
         response['categories'] = CategorySerializer(Category.objects.all(), many=True).data
-        response['brands'] = BrandSerializer(Brand.objects.all(), many=True).data
+        response['brands'] = BrandSerializer(Brand.objects.all().order_by('name'), many=True).data
         return Response(response)
 
 

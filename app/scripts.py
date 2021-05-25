@@ -1,8 +1,9 @@
-from .models import Profile, Brand, Category, Subcategory
+from .models import Profile, Brand, Category, Subcategory, Product
 from openpyxl import load_workbook
 
 
 def xd():
+    Product.objects.all().delete()
     Brand.objects.all().delete()
     Subcategory.objects.all().delete()
     Category.objects.all().delete()
@@ -20,12 +21,26 @@ def xd():
         for y in range(20):
             data = categories[f'{x}{y + 1}'].value
             if y == 0:
-                print(data)
                 cat = Category.objects.create(name=data)
             else:
                 if data:
                     bulk.append(Subcategory(category=cat, name=data))
     Subcategory.objects.bulk_create(bulk)
+    bulk = []
+    products = wb['products']
+    for x in range(100):
+        nm = products[f'A{x + 1}'].value
+        if nm:
+            desc = products[f'B{x + 1}'].value
+            if not desc:
+                desc = ""
+            brand = Brand.objects.get(name=products[f'C{x + 1}'].value)
+            sub = Subcategory.objects.get(name=products[f'D{x + 1}'].value)
+            sex = products[f'E{x + 1}'].value
+            bulk.append(Product(name=nm, description=desc, brand=brand, subcategory=sub, sex=sex))
+    Product.objects.bulk_create(bulk)
+    bulk = []
+
 
 # python manage.py shell
 # from app.scripts import xd

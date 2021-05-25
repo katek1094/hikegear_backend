@@ -1,14 +1,14 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
-from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand
+from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand, Product
 from .fields import CurrentProfileDefault
 
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
-        fields = ['name', 'id']
+        fields = ['id', 'name']
 
 
 class SubcategorySerializer(serializers.ModelSerializer):
@@ -23,6 +23,15 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'subcategories']
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    brand = BrandSerializer()
+    subcategory = SubcategorySerializer()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'brand', 'description', 'subcategory', 'sex']
 
 
 class PrivateGearSerializer(serializers.ModelSerializer):
@@ -84,7 +93,7 @@ class BackpackSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = ['email', 'password', 'id']
+        fields = ['id', 'email', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):

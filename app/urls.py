@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 from .views import UserViewSet, BackpackViewSet, InitialView, LoginView, LogoutView, PrivateGearView, \
-    ImportFromLpView, ImportFromHgView, ImportFromExcelView
+    ImportFromLpView, ImportFromHgView, ImportFromExcelView, SearchForProductView
 
 router = SimpleRouter(trailing_slash=False)
 router.register(r'users', UserViewSet)
@@ -15,5 +15,6 @@ urlpatterns = [
     path('import_from_lp', ImportFromLpView.as_view(), name='import_from_lp'),
     path('import_from_hg', ImportFromHgView.as_view(), name='import_from_hg'),
     path('import_from_excel', ImportFromExcelView.as_view(), name='import_from_excel'),
+    path('search_for_product', SearchForProductView.as_view(), name='search_for_product'),
 ]
 urlpatterns += router.urls
