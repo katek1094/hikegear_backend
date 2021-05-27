@@ -132,7 +132,7 @@ class PrivateGearViewTestCase(DRFTesterCase):
 
 class InitialViewTestCase(DRFTesterCase):
     url = '/api/initial'
-    response_fields = ['backpacks', 'private_gear']
+    response_fields = ['backpacks', 'private_gear', 'categories', 'brands']
 
     def test_unauthorized_get_method(self):
         response = self.client.get(self.url)
@@ -181,7 +181,7 @@ class BackPackViewSetTestCase(DRFTesterCase):
         if expected_status == 200:
             json = response.json()
             self.check_response_fields(json)
-            self.assertEqual(Backpack.objects.get(profile=json['profile']['user_id'], id=json['id'], list=json['list']),
+            self.assertEqual(Backpack.objects.get(profile=json['profile'], id=json['id'], list=json['list']),
                              backpack)
 
     def test_invalid_get_request(self):

@@ -20,7 +20,7 @@ import time
 
 from .models import MyUser, Backpack, Category, Brand, Product, Review
 from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
-from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer, \
+from .serializers import UserSerializer, BackpackSerializer, PrivateGearSerializer, \
     CategorySerializer, BrandSerializer, ProductSerializer, ReviewSerializer
 from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
     urlsafe_base64_decode
@@ -157,7 +157,7 @@ class ImportFromHgView(APIView):
             return Response({"info": 'this backpack is not shared'}, status=status.HTTP_403_FORBIDDEN)
         new_backpack = Backpack.objects.create(profile=request.user.profile, name=backpack.name,
                                                description=backpack.description, list=backpack.list)
-        serializer = BackpackReadSerializer(new_backpack, context={'request': request})
+        serializer = BackpackSerializer(new_backpack, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -177,7 +177,7 @@ class ImportFromLpView(APIView):
         json_data['profile'] = request.user.profile
         serializer = BackpackSerializer(data=json_data)
         serializer.is_valid(raise_exception=True)
-        return Response(BackpackReadSerializer(serializer.save(), context={'request': request}).data,
+        return Response(BackpackSerializer(serializer.save(), context={'request': request}).data,
                         status=status.HTTP_201_CREATED)
 
 
@@ -197,7 +197,7 @@ class InitialView(APIView):
     @staticmethod
     def get(request):
         backpacks = Backpack.objects.filter(profile=request.user.profile).order_by('-updated')
-        backpacks_serializer = BackpackReadSerializer(backpacks, many=True, context={'request': request})
+        backpacks_serializer = BackpackSerializer(backpacks, many=True, context={'request': request})
         private_gear_serializer = PrivateGearSerializer(request.user.profile)
         response = private_gear_serializer.data
         response['backpacks'] = backpacks_serializer.data
@@ -213,12 +213,12 @@ class BackpackViewSet(GenericViewSet, DestroyModelMixin):
     http_method_names = ['get', 'post', 'delete', 'patch']
 
     def retrieve(self, request, pk=None):
-        return Response(BackpackReadSerializer(self.get_object(), context={'request': request}).data)
+        return Response(BackpackSerializer(self.get_object(), context={'request': request}).data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(BackpackReadSerializer(serializer.save(), context={'request': request}).data,
+        return Response(BackpackSerializer(serializer.save(), context={'request': request}).data,
                         status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -227,7 +227,7 @@ class BackpackViewSet(GenericViewSet, DestroyModelMixin):
         partial = kwargs.pop('partial', False)
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        return Response(BackpackReadSerializer(serializer.save(), context={'request': request}).data)
+        return Response(BackpackSerializer(serializer.save(), context={'request': request}).data)
 
     def partial_update(self, request, *args, **kwargs):
         kwargs['partial'] = True

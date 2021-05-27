@@ -18,12 +18,6 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ['user_id']
-
-
 class ReviewSerializer(serializers.ModelSerializer):
     profile = serializers.PrimaryKeyRelatedField(
         default=CurrentProfileDefault(),
@@ -76,34 +70,20 @@ class PrivateGearSerializer(serializers.ModelSerializer):
         return data
 
 
-class BackpackReadSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
-    is_owner = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Backpack
-        fields = ['id', 'created', 'updated', 'profile', 'is_owner', 'shared', 'name', 'description', 'list']
-        read_only_fields = ['__all__']
-
-    def get_is_owner(self, obj):
-        if self.context['request'].user.is_anonymous:
-            return False
-        profile = self.context['request'].user.profile
-        return profile == obj.profile
-
-
 class BackpackSerializer(serializers.ModelSerializer):
     profile = serializers.PrimaryKeyRelatedField(
         default=CurrentProfileDefault(),
         queryset=Profile.objects.all()
     )
+    is_owner = serializers.SerializerMethodField()
 
     class Meta:
         model = Backpack
-        fields = ['profile', 'name', 'description', 'list', 'shared']
+        fields = ['id', 'created', 'updated', 'profile', 'is_owner', 'shared', 'name', 'description', 'list']
+        read_only_fields = ['id', 'created', 'updated', 'is_owner']
 
     def create(self, validated_data):
-        if len(validated_data['name']) > 60:
+        if 'name' in validated_data and len(validated_data['name']) > 60:
             validated_data['name'] = validated_data['name'][:59]
         if 'description' in validated_data:
             if len(validated_data['description']) > 1000:
@@ -113,6 +93,12 @@ class BackpackSerializer(serializers.ModelSerializer):
         except ValidationError as msg:
             raise serializers.ValidationError(msg)
         return backpack
+
+    def get_is_owner(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
+        profile = self.context['request'].user.profile
+        return profile == obj.profile
 
 
 class UserSerializer(serializers.ModelSerializer):
