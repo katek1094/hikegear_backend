@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from simple_history.models import HistoricalRecords
+from .constants import review_text_max_length, review_summary_max_length
 
 
 class MyUserManager(BaseUserManager):
@@ -127,13 +128,21 @@ class Product(CreatedUpdated, TrackedHistory):
     def reviews_amount(self):
         return self.reviews.count()
 
+    @property
+    def full_name(self):
+        if self.subcategory.name != 'inne':
+            return f'{self.subcategory.name} {self.brand.name} {self.name}'
+        else:
+            return f'{self.brand.name} {self.name}'
+
 
 class Review(CreatedUpdated, TrackedHistory):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
-    weight = models.IntegerField(blank=True, null=True)
-    summary = models.CharField(max_length=120)
-    text = models.TextField(max_length=4000)
+    weight_net = models.IntegerField(blank=True, null=True)
+    weight_gross = models.IntegerField(blank=True, null=True)
+    summary = models.CharField(max_length=review_summary_max_length)
+    text = models.TextField(max_length=review_text_max_length)
 
     def __str__(self):
         return self.summary

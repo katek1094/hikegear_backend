@@ -11,3 +11,5 @@ editor_save_timeout = 3000
 categories_max_amount = 16 
 items_in_category_max_amount = 30
 max_backpacks_amount = 40
+review_summary_max_length = 120
+review_text_max_length = 4000

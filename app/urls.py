@@ -1,12 +1,13 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 from .views import UserViewSet, BackpackViewSet, InitialView, LoginView, LogoutView, PrivateGearView, \
-    ImportFromLpView, ImportFromHgView, ImportFromExcelView, SearchForProductView, ProductViewSet
+    ImportFromLpView, ImportFromHgView, ImportFromExcelView, SearchForProductView, ProductViewSet, ReviewsViewSet
 
 router = SimpleRouter(trailing_slash=False)
 router.register(r'users', UserViewSet)
 router.register(r'backpacks', BackpackViewSet)
 router.register(r'products', ProductViewSet)
+router.register(r'reviews', ReviewsViewSet)
 
 urlpatterns = [
     path('initial', InitialView.as_view(), name='initial_view'),

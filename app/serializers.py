@@ -25,11 +25,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
+    profile = serializers.PrimaryKeyRelatedField(
+        default=CurrentProfileDefault(),
+        queryset=Profile.objects.all()
+    )
 
     class Meta:
         model = Review
-        fields = ['profile', 'product', 'weight', 'summary', 'text']
+        fields = ['profile', 'product', 'weight_net', 'weight_gross', 'summary', 'text']
 
 
 class BrandSerializer(serializers.ModelSerializer):
@@ -59,7 +62,7 @@ class ProductSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'brand', 'subcategory', 'reviews_amount', 'reviews']
+        fields = ['id', 'name', 'full_name', 'brand', 'subcategory', 'link', 'reviews_amount', 'reviews']
 
 
 class PrivateGearSerializer(serializers.ModelSerializer):

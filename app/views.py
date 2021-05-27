@@ -18,7 +18,7 @@ from openpyxl import load_workbook
 
 import time
 
-from .models import MyUser, Backpack, Category, Brand, Product
+from .models import MyUser, Backpack, Category, Brand, Product, Review
 from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
 from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer, \
     CategorySerializer, BrandSerializer, ProductSerializer, ReviewSerializer
@@ -30,6 +30,7 @@ from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT, DEBU
 
 
 class ReviewsViewSet(GenericViewSet, CreateModelMixin):
+    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
 
@@ -66,7 +67,7 @@ class SearchForProductView(APIView):
             #     print(r.name)
             #     print(r.similarity)
             return Response(ProductSerializer(results_by_name, many=True,
-                                              fields=('id', 'name', 'brand', 'subcategory', 'reviews_amount')).data)
+                                              fields=('id', 'full_name', 'brand', 'subcategory', 'reviews_amount')).data)
         else:
             return Response('you must provide query for search', status=status.HTTP_400_BAD_REQUEST)
 
