@@ -206,32 +206,11 @@ class InitialView(APIView):
         return Response(response)
 
 
-class BackpackViewSet(GenericViewSet, DestroyModelMixin):
+class BackpackViewSet(GenericViewSet, DestroyModelMixin, RetrieveModelMixin, CreateModelMixin, UpdateModelMixin):
     queryset = Backpack.objects.all()
     permission_classes = [BackpackPermission]
     serializer_class = BackpackSerializer
     http_method_names = ['get', 'post', 'delete', 'patch']
-
-    def retrieve(self, request, pk=None):
-        return Response(BackpackSerializer(self.get_object(), context={'request': request}).data)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response(BackpackSerializer(serializer.save(), context={'request': request}).data,
-                        status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        if DEBUG:
-            time.sleep(.7)
-        partial = kwargs.pop('partial', False)
-        serializer = self.get_serializer(self.get_object(), data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        return Response(BackpackSerializer(serializer.save(), context={'request': request}).data)
-
-    def partial_update(self, request, *args, **kwargs):
-        kwargs['partial'] = True
-        return self.update(request, *args, **kwargs)
 
 
 class UserViewSet(GenericViewSet):
