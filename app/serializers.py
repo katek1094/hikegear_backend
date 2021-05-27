@@ -1,8 +1,35 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
-from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand, Product
+from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand, Product, Review
 from .fields import CurrentProfileDefault
+
+
+class DynamicFieldsModelSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['user_id']
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = Review
+        fields = ['profile', 'product', 'weight', 'summary', 'text']
 
 
 class BrandSerializer(serializers.ModelSerializer):
@@ -25,13 +52,14 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'subcategories']
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(DynamicFieldsModelSerializer):
+    reviews = ReviewSerializer(many=True)
     brand = BrandSerializer()
     subcategory = SubcategorySerializer()
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'brand', 'description', 'subcategory', 'sex']
+        fields = ['id', 'name', 'brand', 'subcategory', 'reviews_amount', 'reviews']
 
 
 class PrivateGearSerializer(serializers.ModelSerializer):
@@ -43,12 +71,6 @@ class PrivateGearSerializer(serializers.ModelSerializer):
         if 'private_gear' not in data:
             raise serializers.ValidationError("You must provide 'private_gear'")
         return data
-
-
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ['user_id']
 
 
 class BackpackReadSerializer(serializers.ModelSerializer):

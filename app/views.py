@@ -1,13 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector, TrigramSimilarity
+from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
-from rest_framework.mixins import DestroyModelMixin
+from rest_framework.mixins import DestroyModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -21,12 +21,23 @@ import time
 from .models import MyUser, Backpack, Category, Brand, Product
 from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
 from .serializers import UserSerializer, BackpackSerializer, BackpackReadSerializer, PrivateGearSerializer, \
-    CategorySerializer, BrandSerializer, ProductSerializer
+    CategorySerializer, BrandSerializer, ProductSerializer, ReviewSerializer
 from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
     urlsafe_base64_decode
 from .lpscraper import import_backpack_from_lp
 from . import constants
 from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT, DEBUG
+
+
+class ReviewsViewSet(GenericViewSet, CreateModelMixin):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class ProductViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class SearchForProductView(APIView):
@@ -46,15 +57,16 @@ class SearchForProductView(APIView):
             brand_id = request.query_params.get('brand_id')
             if brand_id:
                 products = products.filter(brand=brand_id)
-            sex = request.query_params.get('sex')
-            if sex:
-                products = products.filter(sex=sex)
             results_by_name = products.annotate(similarity=TrigramSimilarity('name', requested_query)).filter(
-                similarity__gt=0).order_by('-similarity')
-            for r in products.annotate(similarity=TrigramSimilarity('name', requested_query)).order_by('-similarity'):
-                print(r.name)
-                print(r.similarity)
-            return Response(ProductSerializer(results_by_name, many=True).data)
+                similarity__gt=0.06).order_by('-similarity')
+            # for r in products.annotate(similarity=TrigramSimilarity('name', requested_query)).order_by('-similarity'):
+            #     print(r.name)
+            #     print(r.similarity)
+            # for r in results_by_name:
+            #     print(r.name)
+            #     print(r.similarity)
+            return Response(ProductSerializer(results_by_name, many=True,
+                                              fields=('id', 'name', 'brand', 'subcategory', 'reviews_amount')).data)
         else:
             return Response('you must provide query for search', status=status.HTTP_400_BAD_REQUEST)
 

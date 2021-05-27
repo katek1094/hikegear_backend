@@ -31,15 +31,10 @@ def xd():
     for x in range(100):
         nm = products[f'A{x + 1}'].value
         if nm:
-            desc = products[f'B{x + 1}'].value
-            if not desc:
-                desc = ""
-            brand = Brand.objects.get(name=products[f'C{x + 1}'].value)
-            sub = Subcategory.objects.get(name=products[f'D{x + 1}'].value)
-            sex = products[f'E{x + 1}'].value
-            bulk.append(Product(name=nm, description=desc, brand=brand, subcategory=sub, sex=sex))
+            brand = Brand.objects.get(name=products[f'B{x + 1}'].value)
+            sub = Subcategory.objects.get(name=products[f'C{x + 1}'].value)
+            bulk.append(Product(name=nm, brand=brand, subcategory=sub))
     Product.objects.bulk_create(bulk)
-    bulk = []
 
 
 # python manage.py shell

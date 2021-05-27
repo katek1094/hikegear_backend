@@ -104,7 +104,7 @@ class Category(models.Model):
 
 
 class Subcategory(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='subcategories')
 
     class Meta:
@@ -115,23 +115,22 @@ class Subcategory(models.Model):
 
 
 class Product(CreatedUpdated, TrackedHistory):
-    SEX_CHOICES = [
-        ('unisex', 'unisex'),
-        ('male', 'male'),
-        ('female', 'female'),
-    ]
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT)
-    description = models.CharField(max_length=1000)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.PROTECT)
     name = models.CharField(max_length=100)
-    sex = models.CharField(max_length=6, choices=SEX_CHOICES, default='unisex', blank=True)
+    link = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return self.name
 
+    @property
+    def reviews_amount(self):
+        return self.reviews.count()
+
 
 class Review(CreatedUpdated, TrackedHistory):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     weight = models.IntegerField(blank=True, null=True)
     summary = models.CharField(max_length=120)
     text = models.TextField(max_length=4000)
