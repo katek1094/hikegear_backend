@@ -1,8 +1,25 @@
-from rest_framework import serializers
+from rest_framework import serializers, validators
 from django.core.exceptions import ValidationError
 
 from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand, Product, Review
 from .fields import CurrentProfileDefault
+
+
+class ModelRepresentationPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def __init__(self, **kwargs):
+        self.serializer = kwargs.pop('serializer', None)
+        if self.serializer is not None and not issubclass(self.serializer, serializers.Serializer):
+            raise TypeError('"serializer" is not a valid serializer class')
+
+        super().__init__(**kwargs)
+
+    def use_pk_only_optimization(self):
+        return False if self.serializer else True
+
+    def to_representation(self, instance):
+        if self.serializer:
+            return self.serializer(instance, context=self.context).data
+        return super().to_representation(instance)
 
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
@@ -18,17 +35,6 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    profile = serializers.PrimaryKeyRelatedField(
-        default=CurrentProfileDefault(),
-        queryset=Profile.objects.all()
-    )
-
-    class Meta:
-        model = Review
-        fields = ['profile', 'product', 'weight_net', 'weight_gross', 'summary', 'text']
-
-
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
@@ -39,6 +45,43 @@ class SubcategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Subcategory
         fields = ['id', 'name']
+        validators = [
+            validators.UniqueTogetherValidator(queryset=Subcategory.objects.all(), fields=['name', 'category'])
+        ]
+
+
+class ProductSerializer(DynamicFieldsModelSerializer):
+    author = serializers.PrimaryKeyRelatedField(
+        default=CurrentProfileDefault(),
+        queryset=Profile.objects.all()
+    )
+
+    brand = ModelRepresentationPrimaryKeyRelatedField(queryset=Brand.objects.all(), serializer=BrandSerializer)
+    subcategory = ModelRepresentationPrimaryKeyRelatedField(queryset=Subcategory.objects.all(),
+                                                            serializer=SubcategorySerializer)
+
+    class Meta:
+        model = Product
+        fields = ['id', 'author', 'name', 'full_name', 'brand', 'subcategory', 'url', 'reviews_amount', 'reviews']
+        read_only_fields = ['id', 'full_name', 'reviews_amount', 'reviews']
+        validators = [
+            validators.UniqueTogetherValidator(queryset=Product.objects.all(), fields=['brand', 'subcategory', 'name'])
+        ]
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.PrimaryKeyRelatedField(default=CurrentProfileDefault(), queryset=Profile.objects.all())
+    product = ModelRepresentationPrimaryKeyRelatedField(queryset=Product.objects.all(), serializer=ProductSerializer)
+
+    class Meta:
+        model = Review
+        fields = ['id', 'author', 'product', 'weight_net', 'weight_gross', 'summary', 'text']
+        validators = [
+            validators.UniqueTogetherValidator(queryset=Review.objects.all(), fields=['author', 'product'])
+        ]
+
+
+ProductSerializer.reviews = ReviewSerializer(many=True, read_only=True)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -47,16 +90,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'subcategories']
-
-
-class ProductSerializer(DynamicFieldsModelSerializer):
-    reviews = ReviewSerializer(many=True)
-    brand = BrandSerializer()
-    subcategory = SubcategorySerializer()
-
-    class Meta:
-        model = Product
-        fields = ['id', 'name', 'full_name', 'brand', 'subcategory', 'link', 'reviews_amount', 'reviews']
 
 
 class PrivateGearSerializer(serializers.ModelSerializer):

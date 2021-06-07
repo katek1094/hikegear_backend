@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
-from rest_framework.mixins import DestroyModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.mixins import DestroyModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, ListModelMixin
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -15,8 +15,6 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from openpyxl import load_workbook
-
-import time
 
 from .models import MyUser, Backpack, Category, Brand, Product, Review
 from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
@@ -26,10 +24,10 @@ from .emails import send_account_activation_email, send_password_reset_email, fo
     urlsafe_base64_decode
 from .lpscraper import import_backpack_from_lp
 from . import constants
-from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT, DEBUG
+from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT
 
 
-class ReviewsViewSet(GenericViewSet, CreateModelMixin):
+class ReviewsViewSet(GenericViewSet, CreateModelMixin, RetrieveModelMixin, ListModelMixin):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
@@ -41,7 +39,7 @@ class ProductViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, Retriev
     permission_classes = [IsAuthenticated]
 
 
-class SearchForProductView(APIView):
+class SearchForProductView(APIView):  # TODO: write tests for this view
     permission_classes = [IsAuthenticated]
 
     @staticmethod
@@ -66,8 +64,8 @@ class SearchForProductView(APIView):
             # for r in results_by_name:
             #     print(r.name)
             #     print(r.similarity)
-            return Response(ProductSerializer(results_by_name, many=True,
-                                              fields=('id', 'full_name', 'brand', 'subcategory', 'reviews_amount')).data)
+            return Response(ProductSerializer(results_by_name, many=True, fields=(
+                'id', 'full_name', 'brand', 'subcategory', 'reviews_amount')).data)
         else:
             return Response('you must provide query for search', status=status.HTTP_400_BAD_REQUEST)
 

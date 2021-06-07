@@ -110,16 +110,21 @@ class Subcategory(models.Model):
 
     class Meta:
         verbose_name_plural = 'subcategories'
+        constraints = [models.UniqueConstraint(fields=['name', 'category'], name='subcategory_constraint')]
 
     def __str__(self):
         return self.name
 
 
 class Product(CreatedUpdated, TrackedHistory):
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.PROTECT)
     name = models.CharField(max_length=100)
-    link = models.URLField(blank=True, null=True)
+    url = models.URLField(blank=True, null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['brand', 'subcategory', 'name'], name='product_constraint')]
 
     def __str__(self):
         return self.name
@@ -137,12 +142,16 @@ class Product(CreatedUpdated, TrackedHistory):
 
 
 class Review(CreatedUpdated, TrackedHistory):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     weight_net = models.IntegerField(blank=True, null=True)
     weight_gross = models.IntegerField(blank=True, null=True)
     summary = models.CharField(max_length=review_summary_max_length)
     text = models.TextField(max_length=review_text_max_length)
 
+    class Meta:  # test if constraint are the same as serializers validators?
+        constraints = [models.UniqueConstraint(fields=['author', 'product'], name='review_constraint')]
+
     def __str__(self):
         return self.summary
+
