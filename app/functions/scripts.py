@@ -1,4 +1,4 @@
-from .models import Profile, Brand, Category, Subcategory, Product
+from app.models import Profile, Brand, Category, Subcategory, Product
 from openpyxl import load_workbook
 
 

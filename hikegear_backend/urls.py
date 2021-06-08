@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from app.emails import activate_user_account_view
+from app.functions.emails import activate_user_account_view
 from app.views import stats_view
 
 urlpatterns = [

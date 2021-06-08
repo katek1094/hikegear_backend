@@ -1,29 +1,29 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.postgres.search import TrigramSimilarity
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ValidationError as DjangoValidationError, ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
-from rest_framework.mixins import DestroyModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, ListModelMixin
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.mixins import DestroyModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, \
+    ListModelMixin
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
-from openpyxl import load_workbook
-
 from .models import MyUser, Backpack, Category, Brand, Product, Review
 from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
 from .serializers import UserSerializer, BackpackSerializer, PrivateGearSerializer, \
     CategorySerializer, BrandSerializer, ProductSerializer, ReviewSerializer
-from .emails import send_account_activation_email, send_password_reset_email, force_text, default_token_generator, \
-    urlsafe_base64_decode
-from .lpscraper import import_backpack_from_lp
+from .functions.emails import send_account_activation_email, send_password_reset_email, force_text, \
+    default_token_generator, urlsafe_base64_decode
+from .functions.lpscraper import import_backpack_from_lp
 from . import constants
+from .functions.excel_import import scrape_data_from_excel
 from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT
 
 
@@ -81,66 +81,15 @@ class ImportFromExcelView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     @staticmethod
-    def new_my_gear_cat_id(private_gear):
-        ids = []
-        for cat in private_gear:
-            ids.append(cat['id'])
-        for x in range(1000):
-            if x not in ids:
-                return x
-        return False
-
-    def post(self, request):
+    def post(request):
         try:
-            wb = load_workbook(request.data['excel'])
+            excel_file = request.data['excel']
         except KeyError:
-            return Response('bad format', status=status.HTTP_400_BAD_REQUEST)  # TODO: bad format ? wtf
-        data = wb.active['A:C']
-        if len(data[0]) > 2000:
-            return Response({'info': 'too many items'}, status=status.HTTP_400_BAD_REQUEST)
-        elif len(data[0]) == 0:
-            return Response({'info': 'no items supplied'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            old_list = request.user.profile.private_gear
-            items_ids = []
-            for cat in old_list:
-                for item in cat['items']:
-                    items_ids.append(item['id'])
-            new_categories = [
-                {'name': 'importowane z pliku excel', 'items': [], 'id': self.new_my_gear_cat_id(old_list)}]
-            for (name, description, weight) in zip(data[0], data[1], data[2]):
-                if name.value == 'kategoria':
-                    new_id = self.new_my_gear_cat_id(old_list + new_categories)
-                    if not new_id:
-                        return Response("cant find new id for category", status=status.HTTP_400_BAD_REQUEST)
-                    new_categories.append({'name': description.value, 'items': [], 'id': new_id})
-                else:
-                    if name.value or description.value:
-                        final_id = 0
-                        for x in range(10000):
-                            if x not in items_ids:
-                                items_ids.append(x)
-                                final_id = x
-                                break
-                        final_name = ""
-                        final_description = ""
-                        final_weight = 0
-                        if isinstance(name.value, (str, int)):
-                            final_name = name.value[:constants.item_max_name_len]
-                        if isinstance(description.value, (str, int)):
-                            final_description = description.value[:constants.item_max_description_len]
-                        if isinstance(weight.value, int):
-                            if weight.value <= constants.item_max_weight:
-                                final_weight = weight.value
-                            else:
-                                final_weight = constants.item_max_weight
-                        new_categories[-1]['items'].append(
-                            {'name': final_name, 'description': final_description, 'weight': final_weight,
-                             "id": final_id})
-            data = {'private_gear': old_list + new_categories}
-            serializer = PrivateGearSerializer(request.user.profile, data=data)
-            serializer.is_valid(raise_exception=True)
-            return Response(PrivateGearSerializer(serializer.save()).data)
+            raise ValidationError(detail="you must provide 'excel' file in request data")
+        data = scrape_data_from_excel(excel_file, request.user.profile.private_gear)
+        serializer = PrivateGearSerializer(request.user.profile, data=data)
+        serializer.is_valid(raise_exception=True)
+        return Response(PrivateGearSerializer(serializer.save()).data)
 
 
 class ImportFromHgView(APIView):
@@ -247,7 +196,7 @@ class UserViewSet(GenericViewSet):
         except KeyError:
             msg = "You must provide 'old_password' and 'new_password'"
             return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
-        except ValidationError as msg:
+        except DjangoValidationError as msg:
             return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
         if authenticate(email=request.user.email, password=old_password):
             request.user.set_password(new_password)
@@ -270,7 +219,7 @@ class UserViewSet(GenericViewSet):
             return Response()
         if not user.is_active:
             return Response()
-        send_password_reset_email(request, user)
+        send_password_reset_email(user)
         return Response()
 
     @action(detail=False, methods=['post'])
@@ -295,7 +244,7 @@ class UserViewSet(GenericViewSet):
         if default_token_generator.check_token(user, token):
             try:
                 validate_password(password, user)
-            except ValidationError as msg:
+            except DjangoValidationError as msg:
                 return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
             user.set_password(password)
             user.save()

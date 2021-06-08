@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import redirect, HttpResponse
 from django.utils.encoding import DjangoUnicodeDecodeError
 
-from .models import MyUser
+from app.models import MyUser
 from hikegear_backend.settings import FRONTEND_URL
 
 
@@ -32,7 +32,7 @@ def send_account_activation_email(request, user):
     email.send()
 
 
-def send_password_reset_email(request, user):
+def send_password_reset_email(user):
     text_content = 'Resetowanie hasła'
     subject = 'Resetowanie hasła'
     template_name = "password_reset_email.html"
@@ -40,7 +40,7 @@ def send_password_reset_email(request, user):
     recipients = [user.email]
     uidb64 = urlsafe_base64_encode(force_bytes(user.id))
     token = default_token_generator.make_token(user)
-    reset_url = FRONTEND_URL + 'reset_hasla/' + uidb64 + '/' + token  # TODO: use request.schema?
+    reset_url = FRONTEND_URL + 'reset_hasla/' + uidb64 + '/' + token
     html_content = render_to_string(template_name, {'reset_url': reset_url})
     email = EmailMultiAlternatives(subject, text_content, from_email, recipients)
     email.attach_alternative(html_content, "text/html")

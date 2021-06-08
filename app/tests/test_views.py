@@ -42,6 +42,8 @@ class ImportFromExcelViewTestCase(DRFTesterCase):
         self.assertEqual(data[1]['items'][0]['description'], 'decathlon')
         self.assertEqual(data[1]['items'][0]['weight'], 11)
 
+        #  TODO: test invalid requests
+
 
 class ImportFromHgViewTestCase(DRFTesterCase):
     url = '/api/import_from_hg'
@@ -84,6 +86,8 @@ class ImportFromHgViewTestCase(DRFTesterCase):
         response = self.client.post(self.url, {'backpack_id': backpack.id})
         self.status_check(response, 403)
 
+        #  TODO: test if copying backpack works correctly
+
 
 class ImportFromLpViewTestCase(DRFTesterCase):
     url = '/api/import_from_lp'
@@ -109,6 +113,8 @@ class ImportFromLpViewTestCase(DRFTesterCase):
         new_backpack = Backpack.objects.get(profile=self.user1.profile)
         self.assertEqual(new_backpack.name, 'for testing hikegear.pl')
         self.assertEqual(new_backpack.description, 'test description')
+
+        #  TODO: test lpscraper functions and backpack data importing correctly
 
 
 class PrivateGearViewTestCase(DRFTesterCase):
