@@ -27,7 +27,13 @@ from . import constants
 from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT
 
 
-class ReviewsViewSet(GenericViewSet, CreateModelMixin, RetrieveModelMixin, ListModelMixin):
+class BrandViewSet(GenericViewSet, CreateModelMixin):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class ReviewViewSet(GenericViewSet, CreateModelMixin, RetrieveModelMixin, ListModelMixin):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]

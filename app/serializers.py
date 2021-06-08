@@ -50,28 +50,9 @@ class SubcategorySerializer(serializers.ModelSerializer):
         ]
 
 
-class ProductSerializer(DynamicFieldsModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
-        default=CurrentProfileDefault(),
-        queryset=Profile.objects.all()
-    )
-
-    brand = ModelRepresentationPrimaryKeyRelatedField(queryset=Brand.objects.all(), serializer=BrandSerializer)
-    subcategory = ModelRepresentationPrimaryKeyRelatedField(queryset=Subcategory.objects.all(),
-                                                            serializer=SubcategorySerializer)
-
-    class Meta:
-        model = Product
-        fields = ['id', 'author', 'name', 'full_name', 'brand', 'subcategory', 'url', 'reviews_amount', 'reviews']
-        read_only_fields = ['id', 'full_name', 'reviews_amount', 'reviews']
-        validators = [
-            validators.UniqueTogetherValidator(queryset=Product.objects.all(), fields=['brand', 'subcategory', 'name'])
-        ]
-
-
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(default=CurrentProfileDefault(), queryset=Profile.objects.all())
-    product = ModelRepresentationPrimaryKeyRelatedField(queryset=Product.objects.all(), serializer=ProductSerializer)
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
     class Meta:
         model = Review
@@ -81,7 +62,24 @@ class ReviewSerializer(serializers.ModelSerializer):
         ]
 
 
-ProductSerializer.reviews = ReviewSerializer(many=True, read_only=True)
+class ProductSerializer(DynamicFieldsModelSerializer):
+    author = serializers.PrimaryKeyRelatedField(
+        default=CurrentProfileDefault(),
+        queryset=Profile.objects.all()
+    )
+
+    brand = ModelRepresentationPrimaryKeyRelatedField(queryset=Brand.objects.all(), serializer=BrandSerializer)
+    subcategory = ModelRepresentationPrimaryKeyRelatedField(queryset=Subcategory.objects.all(),
+                                                            serializer=SubcategorySerializer)
+    reviews = ReviewSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ['id', 'author', 'name', 'full_name', 'brand', 'subcategory', 'url', 'reviews_amount', 'reviews']
+        read_only_fields = ['id', 'full_name', 'reviews_amount', 'reviews']
+        validators = [
+            validators.UniqueTogetherValidator(queryset=Product.objects.all(), fields=['brand', 'subcategory', 'name'])
+        ]
 
 
 class CategorySerializer(serializers.ModelSerializer):
