@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from simple_history.models import HistoricalRecords
-from .constants import review_text_max_length, review_summary_max_length
+from . import constants
 
 
 class MyUserManager(BaseUserManager):
@@ -36,6 +36,8 @@ class MyUserManager(BaseUserManager):
 
 
 class MyUser(AbstractUser):
+    first_name = None
+    last_name = None
     username = None
     email = models.EmailField(verbose_name='email_address', max_length=255, unique=True)
     USERNAME_FIELD = 'email'
@@ -63,7 +65,7 @@ class TrackedHistory(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(MyUser, related_name='profile', on_delete=models.CASCADE, primary_key=True)
-    private_gear = models.JSONField(default=list, blank=True)
+    private_gear = models.JSONField(default=list)
 
     def __str__(self):
         return self.user.__str__()
@@ -77,8 +79,8 @@ def create_profile(sender, instance=None, created=False, **kwargs):
 
 class Backpack(CreatedUpdated):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='backpacks')
-    name = models.CharField(max_length=60, default='', blank=True)
-    description = models.TextField(max_length=10000, default='', blank=True)
+    name = models.CharField(max_length=constants.backpack_max_name_length, default='', blank=True)
+    description = models.TextField(max_length=constants.backpack_max_description_length, default='', blank=True)
     list = models.JSONField(default=list)
     shared = models.BooleanField(default=False)
 
@@ -146,12 +148,11 @@ class Review(CreatedUpdated, TrackedHistory):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     weight_net = models.IntegerField(blank=True, null=True)
     weight_gross = models.IntegerField(blank=True, null=True)
-    summary = models.CharField(max_length=review_summary_max_length)
-    text = models.TextField(max_length=review_text_max_length)
+    summary = models.CharField(max_length=constants.review_summary_max_length)
+    text = models.TextField(max_length=constants.review_text_max_length)
 
     class Meta:  # test if constraint are the same as serializers validators?
         constraints = [models.UniqueConstraint(fields=['author', 'product'], name='review_constraint')]
 
     def __str__(self):
         return self.summary
-

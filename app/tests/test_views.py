@@ -1,6 +1,6 @@
 from django.core import mail
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.conf import settings
 import json
@@ -138,7 +138,7 @@ class PrivateGearViewTestCase(DRFTesterCase):
 
 class InitialViewTestCase(DRFTesterCase):
     url = '/api/initial'
-    response_fields = ['backpacks', 'private_gear', 'categories', 'brands']
+    response_fields = ['backpacks', 'private_gear', 'categories', 'brands', 'user_id']
 
     def test_unauthorized_get_method(self):
         response = self.client.get(self.url)

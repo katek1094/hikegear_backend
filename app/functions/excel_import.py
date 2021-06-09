@@ -7,12 +7,12 @@ def validate_excel_file(excel_file):
     try:
         wb = load_workbook(excel_file)
     except KeyError:
-        raise ValidationError(detail='bad format, file must have .xlsx extension')
+        raise ValidationError({'excel': 'bad format, file must have .xlsx extension'})
     data = wb.active['A:C']
     if len(data[0]) > 2000:
-        raise ValidationError(detail='too many items')
+        raise ValidationError({'excel': 'too many items'})
     if len(data[0]) == 0:
-        raise ValidationError(detail='no items provided')
+        raise ValidationError({'excel': 'no items provided'})
     return data
 
 
@@ -44,7 +44,7 @@ def scrape_data_from_excel(excel_file, private_gear):
         if name.value == 'kategoria':
             new_id = new_my_gear_cat_id(private_gear + new_categories)
             if not new_id:
-                raise ValidationError(detail="can't find new id for category")
+                raise ValidationError({'excel': "can't find new id for category"})
             new_categories.append({'name': description.value, 'items': [], 'id': new_id})
         else:
             if name.value or description.value:

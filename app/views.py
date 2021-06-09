@@ -6,7 +6,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
 from rest_framework.mixins import DestroyModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, \
     ListModelMixin
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -22,7 +22,6 @@ from .serializers import UserSerializer, BackpackSerializer, PrivateGearSerializ
 from .functions.emails import send_account_activation_email, send_password_reset_email, force_text, \
     default_token_generator, urlsafe_base64_decode
 from .functions.lpscraper import import_backpack_from_lp
-from . import constants
 from .functions.excel_import import scrape_data_from_excel
 from hikegear_backend.settings import FRONTEND_URL, PASSWORD_RESET_TIMEOUT
 
@@ -33,7 +32,7 @@ class BrandViewSet(GenericViewSet, CreateModelMixin):
     permission_classes = [IsAuthenticated]
 
 
-class ReviewViewSet(GenericViewSet, CreateModelMixin, RetrieveModelMixin, ListModelMixin):
+class ReviewViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
@@ -73,7 +72,7 @@ class SearchForProductView(APIView):  # TODO: write tests for this view
             return Response(ProductSerializer(results_by_name, many=True, fields=(
                 'id', 'full_name', 'brand', 'subcategory', 'reviews_amount')).data)
         else:
-            return Response('you must provide query for search', status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'query': 'you must provide "query" to search for'})
 
 
 class ImportFromExcelView(APIView):
@@ -85,7 +84,7 @@ class ImportFromExcelView(APIView):
         try:
             excel_file = request.data['excel']
         except KeyError:
-            raise ValidationError(detail="you must provide 'excel' file in request data")
+            raise ValidationError({'excel': "you must provide 'excel' file in request data"})
         data = scrape_data_from_excel(excel_file, request.user.profile.private_gear)
         serializer = PrivateGearSerializer(request.user.profile, data=data)
         serializer.is_valid(raise_exception=True)
@@ -100,14 +99,13 @@ class ImportFromHgView(APIView):
         try:
             backpack_id = request.data['backpack_id']
         except KeyError:
-            msg = "you must provide 'backpack_id' of hikegear.pl backpack"
-            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'backpack_id': "you must provide 'backpack_id' of hikegear.pl backpack"})
         try:
             backpack = Backpack.objects.get(id=backpack_id)
         except Backpack.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            raise NotFound
         if not backpack.shared and request.user.profile != backpack.profile:
-            return Response({"info": 'this backpack is not shared'}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied('this backpack is not shared')
         new_backpack = Backpack.objects.create(profile=request.user.profile, name=backpack.name,
                                                description=backpack.description, list=backpack.list)
         serializer = BackpackSerializer(new_backpack, context={'request': request})
@@ -122,8 +120,7 @@ class ImportFromLpView(APIView):
         try:
             url = request.data['url']
         except KeyError:
-            msg = "you must provide 'url' of lighterpack backpack"
-            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'url': "you must provide 'url' of lighterpack backpack"})
         json_data = import_backpack_from_lp(url)
         if not json_data:
             raise NotFound
@@ -156,6 +153,7 @@ class InitialView(APIView):
         response['backpacks'] = backpacks_serializer.data
         response['categories'] = CategorySerializer(Category.objects.all(), many=True).data
         response['brands'] = BrandSerializer(Brand.objects.all().order_by('name'), many=True).data
+        response['user_id'] = request.user.id
         return Response(response)
 
 
@@ -194,25 +192,23 @@ class UserViewSet(GenericViewSet):
             old_password = request.data['old_password']
             validate_password(new_password, request.user)
         except KeyError:
-            msg = "You must provide 'old_password' and 'new_password'"
-            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
-        except DjangoValidationError as msg:
-            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("You must provide 'old_password' and 'new_password'")
+        except DjangoValidationError as err:
+            raise ValidationError({'new_password': err.messages[0]})
         if authenticate(email=request.user.email, password=old_password):
             request.user.set_password(new_password)
             request.user.save()
             login(request, request.user)
             return Response()
         else:
-            return Response({'info': 'provided wrong password!'}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'password': 'provided wrong password'})
 
     @action(detail=False, methods=['post'])
     def reset_password_start(self, request):
         try:
             email = request.data['email']
         except KeyError:
-            msg = 'You must provide email of user that password needs to be reset'
-            return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'email': 'You must provide email of user that password needs to be reset'})
         try:
             user = MyUser.objects.get(email=email)
         except ObjectDoesNotExist:
@@ -227,25 +223,25 @@ class UserViewSet(GenericViewSet):
         try:
             password = request.data['password']
         except KeyError:
-            return Response({'info': 'You must provide password'}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'password': 'You must provide password'})
         try:
             uidb64 = request.data['uidb64']
         except KeyError:
-            return Response({'info': 'You must provide uidb64'}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'uidb64': 'You must provide uidb64'})
         try:
             token = request.data['token']
         except KeyError:
-            return Response({'info': 'You must provide token'}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'token': 'You must provide token'})
         try:
             user_id = force_text(urlsafe_base64_decode(uidb64))
             user = MyUser.objects.get(pk=user_id)
         except MyUser.DoesNotExist:
-            return Response('invalid uidb64', status=status.HTTP_404_NOT_FOUND)
+            raise NotFound({'uidb64': 'invalid uidb64'})
         if default_token_generator.check_token(user, token):
             try:
                 validate_password(password, user)
-            except DjangoValidationError as msg:
-                return Response({'info': msg}, status=status.HTTP_400_BAD_REQUEST)
+            except DjangoValidationError as err:
+                raise ValidationError({'password': err.messages[0]})
             user.set_password(password)
             user.save()
             login(request, user)
