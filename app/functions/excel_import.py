@@ -11,7 +11,7 @@ def validate_excel_file(excel_file):
     data = wb.active['A:C']
     if len(data[0]) > 2000:
         raise ValidationError({'excel': 'too many items'})
-    if len(data[0]) == 0:
+    if len(data[0]) == 1:
         raise ValidationError({'excel': 'no items provided'})
     return data
 

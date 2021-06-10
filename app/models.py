@@ -122,8 +122,8 @@ class Product(CreatedUpdated, TrackedHistory):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.PROTECT)
-    name = models.CharField(max_length=100)
-    url = models.URLField(blank=True, null=True)
+    name = models.CharField(max_length=constants.product_name_max_length)
+    url = models.URLField(default='')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['brand', 'subcategory', 'name'], name='product_constraint')]

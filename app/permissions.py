@@ -18,3 +18,8 @@ class BackpackPermission(BasePermission):
                 return obj.profile.user == request.user
         else:
             return obj.profile.user == request.user
+
+
+class IsAuthor(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.author == request.user.profile

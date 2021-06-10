@@ -7,8 +7,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
-from rest_framework.mixins import DestroyModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, \
-    ListModelMixin
+from rest_framework.mixins import DestroyModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from .models import MyUser, Backpack, Category, Brand, Product, Review
-from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission
+from .permissions import IsAuthenticatedOrPostOnly, BackpackPermission, IsAuthor
 from .serializers import UserSerializer, BackpackSerializer, PrivateGearSerializer, \
     CategorySerializer, BrandSerializer, ProductSerializer, ReviewSerializer
 from .functions.emails import send_account_activation_email, send_password_reset_email, force_text, \
@@ -32,10 +31,10 @@ class BrandViewSet(GenericViewSet, CreateModelMixin):
     permission_classes = [IsAuthenticated]
 
 
-class ReviewViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin):
+class ReviewViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthor]
 
 
 class ProductViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin):

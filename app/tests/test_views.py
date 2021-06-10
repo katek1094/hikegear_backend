@@ -14,22 +14,27 @@ from .drf_tester import DRFTesterCase
 class ImportFromExcelViewTestCase(DRFTesterCase):
     url = '/api/import_from_excel'
 
+    @staticmethod
+    def generate_valid_excel_file(empty=False):
+        excel_file = open('private.xlsx', 'wb')
+        workbook = Workbook()
+        ws = workbook.active
+        if not empty:
+            ws.append(['plecak', 'OMW', 110])
+            ws.append(['śpiwór', 'haha', 232])
+            ws.append(['kategoria', 'nazwa kategorii'])
+            ws.append(['karimata', 'decathlon', 11])
+        workbook.save(excel_file)
+        excel_file.close()
+        return open('private.xlsx', 'rb')
+
     def test_unauthorized_request(self):
         response = self.client.post(self.url)
         self.status_check(response, 403)
 
     def test_valid_request(self):
-        excel_file = open('private.xlsx', 'wb')
-        workbook = Workbook()
-        ws = workbook.active
-        ws.append(['plecak', 'OMW', 110])
-        ws.append(['śpiwór', 'haha', 232])
-        ws.append(['kategoria', 'nazwa kategorii'])
-        ws.append(['karimata', 'decathlon', 11])
-        workbook.save(excel_file)
+        excel_file = self.generate_valid_excel_file
         self.login_client(self.user1)
-        excel_file.close()
-        excel_file = open('private.xlsx', 'rb')
         response = self.client.post(self.url, {'excel': excel_file})
         os.remove('private.xlsx')
         self.status_check(response, 200)
@@ -42,7 +47,17 @@ class ImportFromExcelViewTestCase(DRFTesterCase):
         self.assertEqual(data[1]['items'][0]['description'], 'decathlon')
         self.assertEqual(data[1]['items'][0]['weight'], 11)
 
-        #  TODO: test invalid requests
+    def test_invalid_data_name(self):
+        excel_file = self.generate_valid_excel_file
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'fasdf': excel_file})  # wrong dict key
+        self.status_check(response, 400)
+
+    def test_no_items_provided(self):
+        excel_file = self.generate_valid_excel_file(True)
+        self.login_client(self.user1)
+        response = self.client.post(self.url, {'excel': excel_file})
+        self.status_check(response, 400)
 
 
 class ImportFromHgViewTestCase(DRFTesterCase):
