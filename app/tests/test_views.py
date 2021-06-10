@@ -26,14 +26,15 @@ class ImportFromExcelViewTestCase(DRFTesterCase):
             ws.append(['karimata', 'decathlon', 11])
         workbook.save(excel_file)
         excel_file.close()
-        return open('private.xlsx', 'rb')
+        excel_file = open('private.xlsx', 'rb')
+        return excel_file
 
     def test_unauthorized_request(self):
         response = self.client.post(self.url)
         self.status_check(response, 403)
 
     def test_valid_request(self):
-        excel_file = self.generate_valid_excel_file
+        excel_file = self.generate_valid_excel_file()
         self.login_client(self.user1)
         response = self.client.post(self.url, {'excel': excel_file})
         os.remove('private.xlsx')
