@@ -1,8 +1,10 @@
 from rest_framework import serializers, validators
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
 from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand, Product, Review
 from .fields import CurrentProfileDefault
+from . import constants
 
 
 class ModelRepresentationPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
@@ -44,7 +46,7 @@ class BrandSerializer(serializers.ModelSerializer):
 class SubcategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Subcategory
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'category']
         validators = [
             validators.UniqueTogetherValidator(queryset=Subcategory.objects.all(), fields=['name', 'category'])
         ]
@@ -94,11 +96,7 @@ class PrivateGearSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['private_gear']
-
-    def validate(self, data):
-        if 'private_gear' not in data:
-            raise serializers.ValidationError("You must provide 'private_gear'")
-        return data
+        extra_kwargs = {'private_gear': {'required': True}}
 
 
 class BackpackSerializer(serializers.ModelSerializer):
@@ -112,18 +110,6 @@ class BackpackSerializer(serializers.ModelSerializer):
         model = Backpack
         fields = ['id', 'created', 'updated', 'profile', 'is_owner', 'shared', 'name', 'description', 'list']
         read_only_fields = ['id', 'created', 'updated', 'is_owner']
-
-    def create(self, validated_data):
-        if 'name' in validated_data and len(validated_data['name']) > 60:
-            validated_data['name'] = validated_data['name'][:59]
-        if 'description' in validated_data:
-            if len(validated_data['description']) > 1000:
-                validated_data['description'] = validated_data['description'][:999]
-        try:
-            backpack = Backpack.objects.create(**validated_data)
-        except ValidationError as msg:
-            raise serializers.ValidationError(msg)
-        return backpack
 
     def get_is_owner(self, obj):
         if self.context['request'].user.is_anonymous:
@@ -140,8 +126,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['is_active'] = False
-        try:
-            user = MyUser.objects.create_user(**validated_data)
-        except ValidationError as msg:
-            raise serializers.ValidationError(msg)
+        user = MyUser.objects.create_user(**validated_data)
         return user
+
+    def validate(self, attrs):
+        validate_password(attrs['password'])
+        return attrs
