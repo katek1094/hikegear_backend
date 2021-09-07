@@ -1,10 +1,8 @@
 from rest_framework import serializers, validators
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
 
 from .models import MyUser, Profile, Backpack, Category, Subcategory, Brand, Product, Review
 from .fields import CurrentProfileDefault
-from . import constants
 
 
 class ModelRepresentationPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):

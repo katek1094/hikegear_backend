@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from app.models import MyUser, Backpack, Category, Subcategory, Product, Review, Brand
 from app.serializers import UserSerializer, BackpackSerializer, PrivateGearSerializer, CategorySerializer, \
-    ProductSerializer, ReviewSerializer, SubcategorySerializer
+    ProductSerializer, ReviewSerializer, SubcategorySerializer, BrandSerializer
 
 
 class Empty:
@@ -11,6 +11,14 @@ class Empty:
 
 
 valid_user_data = {'email': 'email@email.com', 'password': 'fas8asdvas'}
+
+
+class BrandSerializerTestCase(TestCase):
+    def test_contains_expected_fields(self):
+        serializer = BrandSerializer(data={'name': 'name'})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        self.assertCountEqual(serializer.data.keys(), ['id', 'name'])
 
 
 class SubcategorySerializerTestCase(TestCase):
