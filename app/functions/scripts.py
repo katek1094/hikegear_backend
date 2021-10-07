@@ -1,4 +1,4 @@
-from app.models import Profile, Brand, Category, Subcategory, Product
+from app.models import MyUser, Brand, Category, Subcategory, Product
 from openpyxl import load_workbook
 
 
@@ -7,7 +7,7 @@ def xd():
     Brand.objects.all().delete()
     Subcategory.objects.all().delete()
     Category.objects.all().delete()
-    wb = load_workbook('/home/kajetan/Desktop/reviews.xlsx', read_only=True)
+    wb = load_workbook('/home/kajetan/Desktop/mm/reviews.xlsx', read_only=True)
     brands = wb['brands']
     bulk = []
     for x in range(40):
@@ -28,14 +28,15 @@ def xd():
     Subcategory.objects.bulk_create(bulk)
     bulk = []
     products = wb['products']
+    superuser = MyUser.objects.filter(is_superuser=True)[0]
     for x in range(100):
         nm = products[f'A{x + 1}'].value
         if nm:
             brand = Brand.objects.get(name=products[f'B{x + 1}'].value)
             sub = Subcategory.objects.get(name=products[f'C{x + 1}'].value)
-            bulk.append(Product(name=nm, brand=brand, subcategory=sub))
+            bulk.append(Product(name=nm, brand=brand, subcategory=sub, author=superuser.profile))
     Product.objects.bulk_create(bulk)
 
 
 # python manage.py shell
-# from app.scripts import xd
+# from app.functions.scripts import xd
