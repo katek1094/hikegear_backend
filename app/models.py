@@ -123,7 +123,7 @@ class Product(CreatedUpdated, TrackedHistory):
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.PROTECT)
     name = models.CharField(max_length=constants.product_name_max_length)
-    url = models.URLField(default='')
+    url = models.URLField(default='', blank=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['brand', 'subcategory', 'name'], name='product_constraint')]
