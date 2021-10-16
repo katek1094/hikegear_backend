@@ -49,10 +49,12 @@ class SearchForProductView(APIView):  # TODO: write tests for this view
     @staticmethod
     def get(request):
         requested_query = request.query_params.get('query')
+        print('one')
         if requested_query is not None:
             products = Product.objects.all()
             subcategory_id = request.query_params.get('subcategory_id')
             category_id = request.query_params.get('category_id')
+            print("two")
             if subcategory_id:
                 products = products.filter(subcategory=subcategory_id)
             elif category_id:
@@ -60,14 +62,10 @@ class SearchForProductView(APIView):  # TODO: write tests for this view
             brand_id = request.query_params.get('brand_id')
             if brand_id:
                 products = products.filter(brand=brand_id)
+            print('three')
             results_by_name = products.annotate(similarity=TrigramSimilarity('name', requested_query)).filter(
                 similarity__gt=0.06).order_by('-similarity')
-            # for r in products.annotate(similarity=TrigramSimilarity('name', requested_query)).order_by('-similarity'):
-            #     print(r.name)
-            #     print(r.similarity)
-            # for r in results_by_name:
-            #     print(r.name)
-            #     print(r.similarity)
+            print('four')
             return Response(ProductSerializer(results_by_name, many=True, fields=(
                 'id', 'full_name', 'brand', 'subcategory', 'reviews_amount')).data)
         else:
@@ -192,6 +190,7 @@ class UserViewSet(GenericViewSet):
             validate_password(new_password, request.user)
         except KeyError:
             raise ValidationError("You must provide 'old_password' and 'new_password'")
+        except DjangoValidationError as err:
         except DjangoValidationError as err:
             raise ValidationError({'new_password': err.messages[0]})
         if authenticate(email=request.user.email, password=old_password):
